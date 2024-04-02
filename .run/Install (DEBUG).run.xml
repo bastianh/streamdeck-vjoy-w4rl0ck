@@ -1,0 +1,20 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Install (DEBUG)" type="ShConfigurationType" activateToolWindowBeforeRun="false" focusToolWindowBeforeRun="true">
+    <option name="SCRIPT_TEXT" value="" />
+    <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
+    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/streamdeck-vjoy-w4rl0ck/bin/install.bat" />
+    <option name="SCRIPT_OPTIONS" value="DEBUG dev.w4rl0ck.streamdeck.vjoy" />
+    <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+    <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="INDEPENDENT_INTERPRETER_PATH" value="false" />
+    <option name="INTERPRETER_PATH" value="$PROJECT_DIR$/../../../../../Windows/System32/WindowsPowerShell/v1.0/powershell.exe" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="EXECUTE_IN_TERMINAL" value="false" />
+    <option name="EXECUTE_SCRIPT_FILE" value="true" />
+    <envs />
+    <method v="2">
+      <option name="CleanProject" default="false" projectName="streamdeck-vjoy-w4rl0ck" projectPath="$PROJECT_DIR$/streamdeck-vjoy-w4rl0ck/streamdeck-vjoy-w4rl0ck.csproj" />
+      <option name="Build Solution" enabled="true" />
+    </method>
+  </configuration>
+</component>

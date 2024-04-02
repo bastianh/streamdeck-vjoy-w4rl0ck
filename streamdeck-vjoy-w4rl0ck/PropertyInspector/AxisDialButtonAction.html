@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"
+          name=viewport>
+    <meta content=yes name=apple-mobile-web-app-capable>
+    <meta content=black name=apple-mobile-web-app-status-bar-style>
+    <title>vJoy Settings</title>
+    <link href="sdpi.css" rel="stylesheet">
+    <script src="sdtools.common.js"></script>
+    <script src="local.js"></script>
+</head>
+<body>
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">vJoy Settings</div>
+    <div class="sdpi-item" id="axis_item">
+        <div class="sdpi-item-label">Axis</div>
+        <select class="sdpi-item-value select sdProperty" id="axis" oninput="setSettings()">
+            <option value="0">X</option>
+            <option value="1">Y</option>
+            <option value="2">Z</option>
+            <option value="3">Rx</option>
+            <option value="4">Ry</option>
+            <option value="5">Rz</option>
+            <option value="6">Slider (sl0)</option>
+            <option value="7">Dial (sl1)</option>
+        </select>
+    </div>
+  
+    <div class="sdpi-heading">Global Settings</div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>Current vJoy status: <span id="status"></span></summary>
+        </details>
+    </div>
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">vJoy Device</div>
+        <select class="sdpi-item-value select sdProperty" id="vJoyId" oninput="setSettings()"></select>
+    </div>
+
+</div>
+</body>
+</html>

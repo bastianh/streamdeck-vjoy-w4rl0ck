@@ -1,3 +1,14 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using BarRaider.SdTools;
 
-Console.WriteLine("Hello, World!");
+namespace dev.w4rl0ck.streamdeck.vjoy
+{
+    internal class Program
+    {
+        private static void Main(string[] args)
+        {
+            // Uncomment this line of code to wait for debugger on startup
+            // while (!System.Diagnostics.Debugger.IsAttached) { System.Threading.Thread.Sleep(100); }
+            SDWrapper.Run(args);
+        }
+    }
+}
