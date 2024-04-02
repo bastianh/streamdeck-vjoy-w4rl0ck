@@ -28,6 +28,16 @@
             <option value="7">Dial (sl1)</option>
         </select>
     </div>
+
+    <div type="range" class="sdpi-item" id="range_with_meters">
+        <div class="sdpi-item-label">Sensivity</div>
+        <div class="sdpi-item-value">
+            <span class="clickable" value="50">50%</span>
+            <input type="range" min="50" max="400" value=100 class="sdProperty" id="sensitivity" oninput="setSettings()">
+            <span class="clickable" value="400">400%</span>
+        </div>
+    </div>
+    
   
     <div class="sdpi-heading">Global Settings</div>
     <div class="sdpi-item">

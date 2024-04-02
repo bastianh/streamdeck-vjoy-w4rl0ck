@@ -99,17 +99,17 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
         {
             Tools.AutoPopulateSettings(settings, payload.Settings);
             var oldVjoyId = _vJoyId;
-            await InitializeSettings();
+            InitializeSettings();
             if (_vJoyId != oldVjoyId)
                 await Connection.SetGlobalSettingsAsync(new JObject { { "vjoy", _vJoyId } });
 
             await SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
             settings.VJoyId = (string)payload.Settings["vjoy"];
-            SaveSettings();
+            await SaveSettings();
         }
 
         private class PluginSettings
@@ -146,7 +146,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(settings));
         }
 
-        private async Task InitializeSettings()
+        private void InitializeSettings()
         {
             if (!uint.TryParse(settings.VJoyId, out _vJoyId))
             {

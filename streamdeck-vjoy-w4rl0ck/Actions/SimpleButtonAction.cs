@@ -40,10 +40,10 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
             SimpleVJoyInterface.VJoyStatusSignal -= SimpleVJoyInterface_OnVJoyStatusSignal;
         }
 
-        private void Connection_OnPropertyInspectorDidAppear(object sender,
+        private async void Connection_OnPropertyInspectorDidAppear(object sender,
             SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
         {
-            SendPropertyInspectorData();
+            await SendPropertyInspectorData();
             _propertyInspectorIsOpen = true;
         }
         private void Connection_OnPropertyInspectorDidDisappear(object sender, SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
@@ -51,13 +51,13 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
             _propertyInspectorIsOpen = false;
         }
 
-        private void SimpleVJoyInterface_OnVJoyStatusSignal(SimpleVJoyInterface.VJoyStatus status)
+        private async void SimpleVJoyInterface_OnVJoyStatusSignal(SimpleVJoyInterface.VJoyStatus status)
         {
             if (_propertyInspectorIsOpen) 
-                SendPropertyInspectorData();
+                await SendPropertyInspectorData();
         }
 
-        private async void SendPropertyInspectorData()
+        private async Task SendPropertyInspectorData()
         {
             var deviceList = SimpleVJoyInterface.Instance.CheckAvailableDevices();
             var devices = JArray.Parse(JsonConvert.SerializeObject(deviceList));
@@ -89,17 +89,17 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
         {
             Tools.AutoPopulateSettings(settings, payload.Settings);
             var oldVjoyId = _vJoyId;
-            await InitializeSettings();
+            InitializeSettings();
             if (_vJoyId != oldVjoyId)
                 await Connection.SetGlobalSettingsAsync(new JObject { { "vjoy", _vJoyId } });
 
             await SaveSettings();
         }
 
-        public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+        public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
             settings.VJoyId = (string)payload.Settings["vjoy"];
-            SaveSettings();
+            await SaveSettings();
         }
 
         private class PluginSettings
@@ -135,7 +135,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy.Actions
             return Connection.SetSettingsAsync(JObject.FromObject(settings));
         }
 
-        private async Task InitializeSettings()
+        private void InitializeSettings()
         {
             if (!uint.TryParse(settings.VJoyId, out _vJoyId))
             {

@@ -7,7 +7,7 @@ using vJoyInterfaceWrap;
 namespace dev.w4rl0ck.streamdeck.vjoy.libs
 {
     public delegate void ButtonSignalHandler(uint button, bool active);
-
+    public delegate void AxisSignalHander(uint axis, float value);
     public delegate void VJoyStatusSignalHandler(SimpleVJoyInterface.VJoyStatus status);
     
     public sealed class SimpleVJoyInterface
@@ -20,9 +20,10 @@ namespace dev.w4rl0ck.streamdeck.vjoy.libs
         public uint CurrentVJoyId;
         public VJoyStatus Status;
 
+        public static event AxisSignalHander AxisSignal;
         public static event ButtonSignalHandler UpdateButtonSignal;
         public static event VJoyStatusSignalHandler VJoyStatusSignal;
-        private long _maxval;
+        private long _maxAxisValue;
 
         public enum ButtonAction
         {
@@ -114,45 +115,49 @@ namespace dev.w4rl0ck.streamdeck.vjoy.libs
             VJoyStatusSignal?.Invoke(status);
         }
         
-        public float MoveAxis(ushort axis, int value)
+        private ref int GetAxisReference(ushort axis)
         {
-            if (_maxval == 0) return 0;
-            ref int axisRef = ref _iReport.AxisX;
             switch (axis)
             {
                 case 0:
-                    axisRef = ref _iReport.AxisX;
-                    break;
+                    return ref _iReport.AxisX;
                 case 1:
-                    axisRef = ref _iReport.AxisY;
-                    break;
+                    return ref _iReport.AxisY;
                 case 2:
-                    axisRef = ref _iReport.AxisZ;
-                    break;
+                    return ref _iReport.AxisZ;
                 case 3:
-                    axisRef = ref _iReport.AxisXRot;
-                    break;
+                    return ref _iReport.AxisXRot;
                 case 4:
-                    axisRef = ref _iReport.AxisYRot;
-                    break;
+                    return ref _iReport.AxisYRot;
                 case 5:
-                    axisRef = ref _iReport.AxisZRot;
-                    break;
+                    return ref _iReport.AxisZRot;
                 case 6:
-                    axisRef = ref _iReport.Slider;
-                    break;
+                    return ref _iReport.Slider;
                 case 7:
-                    axisRef = ref _iReport.Dial;
-                    break;
+                    return ref _iReport.Dial;
             }
-            
-            axisRef += value;
-            
-            if (axisRef > _maxval) axisRef = (int)_maxval;
-            else if (axisRef < 0) axisRef = 0;
+            return ref _iReport.AxisX;
+        }
 
-            if (UpdateVJoy()) return (float)axisRef / _maxval;
-            return 0;
+        public void SetAxis(ushort axis, float percent)
+        {
+            if (_maxAxisValue == 0) return;
+            ref int axisRef = ref GetAxisReference(axis);
+            var value = (int)(_maxAxisValue / 100.0 * percent);
+            axisRef = Math.Clamp(value, 0, (int)_maxAxisValue);
+
+            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
+        }
+        
+        
+        public void MoveAxis(ushort axis, double percent)
+        {
+            if (_maxAxisValue == 0) return;
+            ref int axisRef = ref GetAxisReference(axis);
+            var value = (int)(_maxAxisValue / 100.0 * percent);
+            axisRef = Math.Clamp(axisRef + value, 0, (int)_maxAxisValue);
+
+            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
         }
         
         public void ButtonState(uint button, ButtonAction action)
@@ -230,12 +235,12 @@ namespace dev.w4rl0ck.streamdeck.vjoy.libs
 
                 CurrentVJoyId = id;
                 _vJoy.ResetVJD(id);
-                _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxval);
-                Logger.Instance.LogMessage(TracingLevel.DEBUG, $"vJoy Device: {id}, axis maxval is now '{_maxval}'");
-                if (_maxval == 0) // TODO: find out why that happens sometimes
+                _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
+                Logger.Instance.LogMessage(TracingLevel.DEBUG, $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
+                if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
                 {
                     Logger.Instance.LogMessage(TracingLevel.ERROR, $"overwriting maxval to 32767 :(");
-                    _maxval = 32767;
+                    _maxAxisValue = 32767;
                 }
                 UpdateVJoy();
                 ChangeStatus(VJoyStatus.Connected);

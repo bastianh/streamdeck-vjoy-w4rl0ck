@@ -18,6 +18,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy
         private readonly PluginSettings settings;
         private uint _vJoyId;
         private ushort _axis;
+        private ushort _sensitivity;
         private bool _propertyInspectorIsOpen;
 
         #endregion
@@ -27,6 +28,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
             Connection.OnPropertyInspectorDidDisappear += Connection_OnPropertyInspectorDidDisappear;
             SimpleVJoyInterface.VJoyStatusSignal += SimpleVJoyInterface_OnVJoyStatusSignal;
+            SimpleVJoyInterface.AxisSignal += SimpleVJoyInterface_OnAxisSignal;
             
             if (payload.Settings == null || payload.Settings.Count == 0)
             {
@@ -49,11 +51,12 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
             Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
             SimpleVJoyInterface.VJoyStatusSignal -= SimpleVJoyInterface_OnVJoyStatusSignal;
+            SimpleVJoyInterface.AxisSignal -= SimpleVJoyInterface_OnAxisSignal;
         }
 
-        private void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
+        private async void Connection_OnPropertyInspectorDidAppear(object sender, SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
         {
-            SendPropertyInspectorData();
+            await SendPropertyInspectorData();
             _propertyInspectorIsOpen = true;
         }
         private void Connection_OnPropertyInspectorDidDisappear(object sender, SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
@@ -61,12 +64,20 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             _propertyInspectorIsOpen = false;
         }
 
-        private void SimpleVJoyInterface_OnVJoyStatusSignal(SimpleVJoyInterface.VJoyStatus status)
+        private async void SimpleVJoyInterface_OnVJoyStatusSignal(SimpleVJoyInterface.VJoyStatus status)
         {
             if (_propertyInspectorIsOpen) 
-                SendPropertyInspectorData();
+                await SendPropertyInspectorData();
         }
-        private async void SendPropertyInspectorData()
+        
+        private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
+        {
+            if (axis != _axis) return;
+            var dict = new Dictionary<string, string> { { "value", value.ToString("P") } };
+            await Connection.SetFeedbackAsync(dict);
+        }
+
+        private async Task SendPropertyInspectorData()
         {
             var deviceList = SimpleVJoyInterface.Instance.CheckAvailableDevices();
             var devices = JArray.Parse(JsonConvert.SerializeObject(deviceList));
@@ -91,16 +102,13 @@ namespace dev.w4rl0ck.streamdeck.vjoy
 
 
         public override void DialRotate(DialRotatePayload payload)
-        {
-            var retval = SimpleVJoyInterface.Instance.MoveAxis(_axis,payload.Ticks * 600);
-            Logger.Instance.LogMessage(TracingLevel.INFO, $"Dial Rotated: {payload.Ticks} {_axis}: {retval}");
-            
-            var dict = new Dictionary<string, string> { { "value", retval.ToString("P") } };
-            Connection.SetFeedbackAsync(dict);
+        { 
+            SimpleVJoyInterface.Instance.MoveAxis(_axis, payload.Ticks * _sensitivity / 100.0);
         }
 
         public override void DialDown(DialPayload payload)
         {
+            SimpleVJoyInterface.Instance.SetAxis(_axis,0);
             Logger.Instance.LogMessage(TracingLevel.INFO, "Dial Pressed");
         }
 
@@ -122,7 +130,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy
         {
             Tools.AutoPopulateSettings(settings, payload.Settings);
             var oldVJoyId = _vJoyId;
-            await InitializeSettings();
+            InitializeSettings();
             if (_vJoyId != oldVJoyId)
                 await Connection.SetGlobalSettingsAsync(new JObject { { "vjoy", _vJoyId } });
 
@@ -132,8 +140,9 @@ namespace dev.w4rl0ck.streamdeck.vjoy
         public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
         {
             settings.VJoyId = (string)payload.Settings["vjoy"];
-            await InitializeSettings();
+            InitializeSettings();
             await SaveSettings();
+            await SendPropertyInspectorData();
         }
 
         #region Private Methods
@@ -143,7 +152,7 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             return Connection.SetSettingsAsync(JObject.FromObject(settings));
         }
 
-        private async Task InitializeSettings()
+        private void InitializeSettings()
         {
             if (!uint.TryParse(settings.VJoyId, out _vJoyId))
             {
@@ -154,6 +163,12 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             SimpleVJoyInterface.Instance.ConnectToVJoy(_vJoyId);
             
             if (!ushort.TryParse(settings.axis, out _axis))
+            {
+                // todo: error state
+                return;
+            }
+
+            if (!ushort.TryParse(settings.sensitivity, out _sensitivity))
             {
                 // todo: error state
                 return;
@@ -170,11 +185,15 @@ namespace dev.w4rl0ck.streamdeck.vjoy
             [JsonProperty(PropertyName = "axis")]
             public string axis { get; set; }
 
+            [JsonProperty(PropertyName = "sensitivity")]
+            public string sensitivity { get; set; }
+            
             public static PluginSettings CreateDefaultSettings()
             {
                 var instance = new PluginSettings();
                 instance.VJoyId = string.Empty;
                 instance.axis = "0";
+                instance.sensitivity = "100";
                 return instance;
             }
         }
