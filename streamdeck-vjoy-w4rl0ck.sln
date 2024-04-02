@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "streamdeck-vjoy-w4rl0ck", "streamdeck-vjoy-w4rl0ck\streamdeck-vjoy-w4rl0ck.csproj", "{66423059-8C32-428C-A679-4E753DD2F780}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{66423059-8C32-428C-A679-4E753DD2F780}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66423059-8C32-428C-A679-4E753DD2F780}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66423059-8C32-428C-A679-4E753DD2F780}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66423059-8C32-428C-A679-4E753DD2F780}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
