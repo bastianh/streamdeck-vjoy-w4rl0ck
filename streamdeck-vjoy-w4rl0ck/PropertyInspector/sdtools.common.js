@@ -58,7 +58,7 @@ function websocketOnMessage(evt) {
     if (jsonObj.event === 'didReceiveSettings') {
         var payload = jsonObj.payload;
         loadConfiguration(payload.settings);
-    } 
+    }
 }
 
 function loadConfiguration(payload) {
@@ -94,9 +94,9 @@ function loadConfiguration(payload) {
             } else { // Normal value
                 elem.value = payload[key];
             }
-            console.log("Load", key,  payload[key]);
+            console.log("Load", key, payload[key]);
         } catch (err) {
-            console.warn("loadConfiguration failed for key",key, err);
+            console.warn("loadConfiguration failed for key", key, err);
         }
     }
 }

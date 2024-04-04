@@ -1,5 +1,5 @@
 /* https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css */
-    
+
 .linkspan {
     cursor: pointer;
     color: #7397d2;
@@ -7,8 +7,8 @@
 }
 
 .titleAlignedSmall {
-    font-size:9pt;
-    padding-left:33px !important;
+    font-size: 9pt;
+    padding-left: 33px !important;
 }
 
 .small {
@@ -32,23 +32,22 @@
 }
 
 .bright {
-    color:#d8d8d8;
+    color: #d8d8d8;
 }
 
 .iconLeft {
     background-position: 0px 4px !important;
 }
 
-.summaryIconPadding
-{
-    padding-left:15px;
+.summaryIconPadding {
+    padding-left: 15px;
 }
 
 .subMenu {
     border-left: 1px dotted gray;
-    padding-left:15px;
-    max-width:96%;
-    background-color:#323232;
+    padding-left: 15px;
+    max-width: 96%;
+    background-color: #323232;
 }
 
 :root {
@@ -1026,7 +1025,8 @@ textarea {
 
 /* CAROUSEL */
 
-.sdpi-item[type="carousel"] {}
+.sdpi-item[type="carousel"] {
+}
 
 .sdpi-item.card-carousel-wrapper,
 .sdpi-item > .card-carousel-wrapper {
@@ -1162,17 +1162,21 @@ h1 {
     background-position: 4px 0px;
 }
 
-::-webkit-datetime-edit-fields-wrapper {}
+::-webkit-datetime-edit-fields-wrapper {
+}
 
 ::-webkit-datetime-edit-text {
     padding: 0 0.3em;
 }
 
-::-webkit-datetime-edit-month-field {}
+::-webkit-datetime-edit-month-field {
+}
 
-::-webkit-datetime-edit-day-field {}
+::-webkit-datetime-edit-day-field {
+}
 
-::-webkit-datetime-edit-year-field {}
+::-webkit-datetime-edit-year-field {
+}
 
 ::-webkit-inner-spin-button {
 

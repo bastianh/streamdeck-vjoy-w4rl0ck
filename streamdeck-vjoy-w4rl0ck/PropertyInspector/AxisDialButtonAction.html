@@ -29,16 +29,17 @@
         </select>
     </div>
 
-    <div type="range" class="sdpi-item" id="range_with_meters">
+    <div class="sdpi-item" id="range_with_meters" type="range">
         <div class="sdpi-item-label">Sensivity</div>
         <div class="sdpi-item-value">
             <span class="clickable" value="50">50%</span>
-            <input type="range" min="50" max="400" value=100 class="sdProperty" id="sensitivity" oninput="setSettings()">
+            <input class="sdProperty" id="sensitivity" max="400" min="50" oninput="setSettings()" type="range"
+                   value=100>
             <span class="clickable" value="400">400%</span>
         </div>
     </div>
-    
-  
+
+
     <div class="sdpi-heading">Global Settings</div>
     <div class="sdpi-item">
         <details class="message info">

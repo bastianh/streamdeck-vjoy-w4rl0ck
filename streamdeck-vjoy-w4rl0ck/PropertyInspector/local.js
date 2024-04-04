@@ -1,4 +1,3 @@
-
 function sendFromPlugin(payload) {
     var elem = document.getElementById("vJoyId");
     var textProperty = "vJoyName";
