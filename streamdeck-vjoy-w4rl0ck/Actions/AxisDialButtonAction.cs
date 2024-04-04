@@ -26,10 +26,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
-
-#pragma warning disable 4014
-        InitializeSettings();
-#pragma warning restore 4014
     }
 
     public override void Dispose()
@@ -40,39 +36,11 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         SimpleVJoyInterface.AxisSignal -= SimpleVJoyInterface_OnAxisSignal;
     }
 
-    private async void Connection_OnPropertyInspectorDidAppear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
-    {
-        await SendPropertyInspectorData();
-        _propertyInspectorIsOpen = true;
-    }
-
-    private void Connection_OnPropertyInspectorDidDisappear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
-    {
-        _propertyInspectorIsOpen = false;
-    }
-
-    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
-    {
-        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
-    }
-
     private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
     {
-        if (axis != _axis) return;
+        if (axis != _settings.Axis) return;
         var dict = new Dictionary<string, string> { { "value", value.ToString("P") } };
         await Connection.SetFeedbackAsync(dict);
-    }
-
-    private async Task SendPropertyInspectorData()
-    {
-        var data = new JObject
-        {
-            ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
-            ["status"] = SimpleVJoyInterface.Instance.Status.ToString()
-        };
-        await Connection.SendToPropertyInspectorAsync(data);
     }
 
     public override void KeyPressed(KeyPayload payload)
@@ -88,12 +56,12 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void DialRotate(DialRotatePayload payload)
     {
-        SimpleVJoyInterface.Instance.MoveAxis(_axis, payload.Ticks * _sensitivity / 100.0);
+        SimpleVJoyInterface.Instance.MoveAxis(_settings.Axis, payload.Ticks * _settings.Sensitivity / 100.0);
     }
 
     public override void DialDown(DialPayload payload)
     {
-        SimpleVJoyInterface.Instance.SetAxis(_axis, 0);
+        SimpleVJoyInterface.Instance.SetAxis(_settings.Axis, 0);
         Logger.Instance.LogMessage(TracingLevel.INFO, "Dial Pressed");
     }
 
@@ -114,38 +82,11 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         Tools.AutoPopulateSettings(_settings, payload.Settings);
-        InitializeSettings();
     }
 
-    public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+    public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
     {
     }
-
-    private class PluginSettings
-    {
-        [JsonProperty(PropertyName = "axis")] 
-        public string axis { get; set; }
-
-        [JsonProperty(PropertyName = "sensitivity")]
-        public string sensitivity { get; set; }
-
-        public static PluginSettings CreateDefaultSettings()
-        {
-            var instance = new PluginSettings();
-            instance.axis = "0";
-            instance.sensitivity = "100";
-            return instance;
-        }
-    }
-
-    #region Private Members
-
-    private readonly PluginSettings _settings;
-    private ushort _axis;
-    private ushort _sensitivity;
-    private bool _propertyInspectorIsOpen;
-
-    #endregion
 
     #region Private Methods
 
@@ -154,16 +95,57 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         return Connection.SetSettingsAsync(JObject.FromObject(_settings));
     }
 
-    private void InitializeSettings()
-    {
-        if (!ushort.TryParse(_settings.axis, out _axis))
-            // todo: error state
-            return;
+    #endregion
 
-        if (!ushort.TryParse(_settings.sensitivity, out _sensitivity))
-            // todo: error state
-            return;
+    private class PluginSettings
+    {
+        [JsonProperty(PropertyName = "axis")] public ushort Axis { get; set; }
+
+        [JsonProperty(PropertyName = "sensitivity")]
+        public ushort Sensitivity { get; set; }
+
+        public static PluginSettings CreateDefaultSettings()
+        {
+            var instance = new PluginSettings
+            {
+                Axis = 0,
+                Sensitivity = 100
+            };
+            return instance;
+        }
     }
+
+    #region Property Inspector
+
+    private async void Connection_OnPropertyInspectorDidAppear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
+    {
+        await SendPropertyInspectorData();
+        _propertyInspectorIsOpen = true;
+    }
+
+    private void Connection_OnPropertyInspectorDidDisappear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
+    {
+        _propertyInspectorIsOpen = false;
+    }
+
+    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
+    {
+        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
+    }
+
+    private async Task SendPropertyInspectorData()
+    {
+        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+    }
+
+    #endregion
+
+    #region Private Members
+
+    private readonly PluginSettings _settings;
+    private bool _propertyInspectorIsOpen;
 
     #endregion
 }

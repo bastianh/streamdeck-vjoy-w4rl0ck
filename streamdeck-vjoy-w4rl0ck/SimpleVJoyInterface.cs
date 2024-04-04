@@ -32,11 +32,9 @@ public sealed class SimpleVJoyInterface
     private static readonly object SingletonLockObject = new();
     private readonly object _updateLockObject = new();
     private readonly vJoy _vJoy;
+    private Configuration _configuration;
     private vJoy.JoystickState _iReport;
     private long _maxAxisValue;
-    private Configuration _configuration;
-    public uint CurrentVJoyId { get; private set; }
-    public VJoyStatus Status { get; private set; }
 
     private SimpleVJoyInterface()
     {
@@ -46,6 +44,9 @@ public sealed class SimpleVJoyInterface
         if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated);
         _configuration = Configuration.Instance;
     }
+
+    public uint CurrentVJoyId { get; private set; }
+    public VJoyStatus Status { get; private set; }
 
     #region Singleton
 

@@ -61,11 +61,13 @@ public sealed class Configuration : IDisposable
             };
             SetGlobalSettings();
         }
+
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Configuration GotSettings '{GlobalSettings.VJoyDeviceId}'");
         Ready = true;
+        ConfigurationUpdated();
     }
 
-    public void ShowConfiguration()
+    public static void ShowConfiguration()
     {
         var configForm = new ConfigForm.ConfigForm();
         configForm.ShowDialog();
@@ -75,6 +77,23 @@ public sealed class Configuration : IDisposable
     {
         GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(GlobalSettings));
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Configuration SAVED '{GlobalSettings.VJoyDeviceId}'");
+        ConfigurationUpdated();
+    }
+
+    public JObject GetPropertyInspectorData()
+    {
+        var data = new JObject
+        {
+            ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
+            ["status"] = SimpleVJoyInterface.Instance.Status.ToString(),
+            ["global"] = JObject.FromObject(GlobalSettings)
+        };
+        return data;
+    }
+
+    private void ConfigurationUpdated()
+    {
+        SimpleVJoyInterface.Instance.ConnectToVJoy(GlobalSettings.VJoyDeviceId);
     }
 
     #region Singleton

@@ -25,16 +25,12 @@ public class SimpleButtonAction : KeypadBase
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
-
-#pragma warning disable 4014
-        InitializeSettings();
-#pragma warning restore 4014
     }
 
     private void Connection_OnSendToPlugin(object sender, SDEventReceivedEventArgs<SendToPlugin> e)
     {
         var action = e.Event.Payload["action"]?.ToString();
-        if (action == "showconfig") Configuration.Instance.ShowConfiguration();
+        if (action == "showconfig") Configuration.ShowConfiguration();
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Connection_OnSendToPlugin '{action}'");
     }
 
@@ -46,19 +42,14 @@ public class SimpleButtonAction : KeypadBase
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
     }
 
-    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
-    {
-        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
-    }
-
     public override void KeyPressed(KeyPayload payload)
     {
-        SimpleVJoyInterface.Instance.ButtonState(_buttonId, SimpleVJoyInterface.ButtonAction.Down);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Down);
     }
 
     public override void KeyReleased(KeyPayload payload)
     {
-        SimpleVJoyInterface.Instance.ButtonState(_buttonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
     }
 
     public override void OnTick()
@@ -68,23 +59,31 @@ public class SimpleButtonAction : KeypadBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         Tools.AutoPopulateSettings(_settings, payload.Settings);
-        InitializeSettings();
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
     {
     }
 
+    #region Private Methods
+
+    private Task SaveSettings()
+    {
+        return Connection.SetSettingsAsync(JObject.FromObject(_settings));
+    }
+
+    #endregion
+
     private class PluginSettings
     {
         [JsonProperty(PropertyName = "buttonId")]
-        public string ButtonId { get; set; }
+        public uint ButtonId { get; set; }
 
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
-                ButtonId = String.Empty
+                ButtonId = 1
             };
             return instance;
         }
@@ -105,14 +104,14 @@ public class SimpleButtonAction : KeypadBase
         _propertyInspectorIsOpen = false;
     }
 
+    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
+    {
+        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
+    }
+
     private async Task SendPropertyInspectorData()
     {
-        var data = new JObject
-        {
-            ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
-            ["status"] = SimpleVJoyInterface.Instance.Status.ToString()
-        };
-        await Connection.SendToPropertyInspectorAsync(data);
+        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
     }
 
     #endregion
@@ -120,24 +119,7 @@ public class SimpleButtonAction : KeypadBase
     #region Private Members
 
     private readonly PluginSettings _settings;
-    private uint _buttonId;
     private bool _propertyInspectorIsOpen;
-
-    #endregion
-
-    #region Private Methods
-
-    private Task SaveSettings()
-    {
-        return Connection.SetSettingsAsync(JObject.FromObject(_settings));
-    }
-
-    private void InitializeSettings()
-    {
-        if (!uint.TryParse(_settings.ButtonId, out _buttonId))
-            Logger.Instance.LogMessage(TracingLevel.ERROR, $"Could not parse ButtonId '{_settings.ButtonId}'");
-        // todo: error state
-    }
 
     #endregion
 }

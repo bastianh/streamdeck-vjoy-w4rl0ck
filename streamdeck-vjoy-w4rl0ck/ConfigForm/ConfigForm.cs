@@ -15,7 +15,8 @@ public partial class ConfigForm : Form
         foreach (var i in _vJoyDevices)
         {
             vJoySelector.Items.Add("vJoy Device #" + i);
-            if (Configuration.Instance.GlobalSettings.VJoyDeviceId == i) vJoySelector.SelectedIndex = _vJoyDevices.IndexOf(i);
+            if (Configuration.Instance.GlobalSettings.VJoyDeviceId == i)
+                vJoySelector.SelectedIndex = _vJoyDevices.IndexOf(i);
         }
     }
 

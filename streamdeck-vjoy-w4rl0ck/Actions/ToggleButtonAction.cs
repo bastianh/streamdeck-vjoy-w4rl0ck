@@ -21,16 +21,11 @@ public class ToggleButtonAction : KeypadBase
         {
             _settings = PluginSettings.CreateDefaultSettings();
             SaveSettings();
-            GlobalSettingsManager.Instance.RequestGlobalSettings();
         }
         else
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
-
-#pragma warning disable 4014
-        InitializeSettings();
-#pragma warning restore 4014
     }
 
     public override void Dispose()
@@ -40,46 +35,16 @@ public class ToggleButtonAction : KeypadBase
         SimpleVJoyInterface.UpdateButtonSignal -= SimpleVJoyInterface_OnUpdateButtonSignal;
     }
 
-    private void Connection_OnPropertyInspectorDidAppear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
-    {
-        SendPropertyInspectorData();
-        _propertyInspectorIsOpen = true;
-    }
-
-    private void Connection_OnPropertyInspectorDidDisappear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
-    {
-        _propertyInspectorIsOpen = false;
-    }
-
-    private void SimpleVJoyInterface_OnVJoyStatusUpdate()
-    {
-        if (_propertyInspectorIsOpen) SendPropertyInspectorData();
-    }
-
     private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
     {
-        if (buttonId != _buttonId) return;
+        if (buttonId != _settings.ButtonId) return;
         _buttonState = state;
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
     }
 
-    private async void SendPropertyInspectorData()
-    {
-        var data = new JObject
-        {
-            ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
-            ["status"] = SimpleVJoyInterface.Instance.Status.ToString()
-        };
-        await Connection.SendToPropertyInspectorAsync(data);
-    }
-
     public override void KeyPressed(KeyPayload payload)
     {
-        Logger.Instance.LogMessage(TracingLevel.INFO,
-            "Key Pressed (" + payload.Coordinates.Row + "," + payload.Coordinates.Column + "): " + payload.State);
-        SimpleVJoyInterface.Instance.ButtonState(_buttonId, SimpleVJoyInterface.ButtonAction.Toggle);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Toggle);
     }
 
     public override void KeyReleased(KeyPayload payload)
@@ -90,38 +55,43 @@ public class ToggleButtonAction : KeypadBase
     public override void OnTick()
     {
     }
+    
+    
+    #region Property Inspector
+
+    private async void Connection_OnPropertyInspectorDidAppear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
+    {
+        await SendPropertyInspectorData();
+        _propertyInspectorIsOpen = true;
+    }
+
+    private void Connection_OnPropertyInspectorDidDisappear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
+    {
+        _propertyInspectorIsOpen = false;
+    }
+
+    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
+    {
+        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
+    }
+
+    private async Task SendPropertyInspectorData()
+    {
+        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+    }
+
+    #endregion
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         Tools.AutoPopulateSettings(_settings, payload.Settings);
-        InitializeSettings();
     }
 
-    public override async void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
+    public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
     {
     }
-
-    private class PluginSettings
-    {
-        [JsonProperty(PropertyName = "buttonId")]
-        public string ButtonId { get; set; }
-
-        public static PluginSettings CreateDefaultSettings()
-        {
-            var instance = new PluginSettings();
-            instance.ButtonId = string.Empty;
-            return instance;
-        }
-    }
-
-    #region Private Members
-
-    private readonly PluginSettings _settings;
-    private uint _buttonId;
-    private bool _buttonState;
-    private bool _propertyInspectorIsOpen;
-
-    #endregion
 
     #region Private Methods
 
@@ -130,14 +100,28 @@ public class ToggleButtonAction : KeypadBase
         return Connection.SetSettingsAsync(JObject.FromObject(_settings));
     }
 
-    private void InitializeSettings()
+    #endregion
+
+    private class PluginSettings
     {
-        if (!uint.TryParse(_settings.ButtonId, out _buttonId))
+        [JsonProperty(PropertyName = "buttonId")]
+        public uint ButtonId { get; set; }
+
+        public static PluginSettings CreateDefaultSettings()
         {
-            Logger.Instance.LogMessage(TracingLevel.ERROR, $"Could not parse ButtonId '{_settings.ButtonId}'");
-            // todo: error state
+            var instance = new PluginSettings
+            {
+                ButtonId = 1
+            };
+            return instance;
         }
     }
+    
+    #region Private Members
+
+    private readonly PluginSettings _settings;
+    private bool _buttonState;
+    private bool _propertyInspectorIsOpen;
 
     #endregion
 }
