@@ -1,5 +1,9 @@
 /* https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css */
 
+.keypadOnly {
+    display: none;
+}
+
 .linkspan {
     cursor: pointer;
     color: #7397d2;

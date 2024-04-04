@@ -19,10 +19,17 @@ var websocket = null,
     runningApps = [],
     isQT = navigator.appVersion.includes('QtWebEngine');
 
+function showElementsByClassName(className) {
+    var elements = document.getElementsByClassName(className);
+    for(var i = 0; i < elements.length; i++){
+        elements[i].style.display = "block";
+    }
+}
+
 function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, inActionInfo) {
     uuid = inUUID;
     registerEventName = inRegisterEvent;
-    console.log(inUUID, inActionInfo);
+    // console.log("cESDS", inUUID, inActionInfo);
     actionInfo = JSON.parse(inActionInfo); // cache the info
     inInfo = JSON.parse(inInfo);
     websocket = new WebSocket('ws://127.0.0.1:' + inPort);
@@ -38,6 +45,11 @@ function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, 
 
     loadConfiguration(actionInfo.payload.settings);
     initPropertyInspector();
+
+    if (actionInfo?.payload?.controller === "Keypad") {
+        showElementsByClassName("keypadOnly");
+    }
+    
 }
 
 function websocketOnOpen() {

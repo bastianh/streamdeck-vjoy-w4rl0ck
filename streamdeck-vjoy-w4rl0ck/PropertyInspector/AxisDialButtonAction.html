@@ -29,6 +29,23 @@
         </select>
     </div>
 
+    <div class="keypadOnly">
+        <div class="sdpi-item" id="button_action_item">
+            <div class="sdpi-item-label">Button Action</div>
+            <select class="sdpi-item-value select sdProperty" id="button_action" oninput="setSettings()">
+                <option value="0">Reset to 0</option>
+                <option value="1">Up</option>
+                <option value="2">Down</option>
+            </select>
+        </div>
+
+        <div type="checkbox" class="sdpi-item">
+            <div class="sdpi-item-label">Title</div>
+            <input class="sdpi-item-value sdProperty sdCheckbox" id="title_value" type="checkbox" oninput="setSettings()">
+            <label for="title_value"><span></span>Set current value as title</label>
+        </div>
+    </div>
+
     <div class="sdpi-item" id="range_with_meters" type="range">
         <div class="sdpi-item-label">Sensivity</div>
         <div class="sdpi-item-value">
@@ -38,17 +55,19 @@
             <span class="clickable" value="400">400%</span>
         </div>
     </div>
-
+    
 
     <div class="sdpi-heading">Global Settings</div>
     <div class="sdpi-item">
         <details class="message info">
-            <summary>Current vJoy status: <span id="status"></span></summary>
+            <summary>Status: <span id="status"></span></summary>
         </details>
     </div>
+
     <div class="sdpi-item">
-        <div class="sdpi-item-label">vJoy Device</div>
-        <select class="sdpi-item-value select sdProperty" id="vJoyId" oninput="setSettings()"></select>
+        <button class="sdpi-item-value" id="config_button" onclick="sendPayloadToPlugin({'action':'showconfig'})">Open
+            Configuration
+        </button>
     </div>
 
 </div>

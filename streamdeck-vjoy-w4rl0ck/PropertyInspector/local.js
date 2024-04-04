@@ -1,20 +1,8 @@
 function sendFromPlugin(payload) {
-    var elem = document.getElementById("vJoyId");
-    var textProperty = "vJoyName";
-    var valueProperty = "vJoyIndex";
-    var valueField = "device";
-
-    var items = payload["devices"];
-    elem.options.length = 0;
-
-    for (var idx = 0; idx < items.length; idx++) {
-        var opt = document.createElement('option');
-        opt.value = items[idx][valueProperty];
-        opt.text = items[idx][textProperty];
-        elem.appendChild(opt);
-    }
-    elem.value = payload[valueField];
-    document.getElementById("status").innerHTML = payload.status
+    console.log("got payload", payload)
+    window.payload = payload;
+    
+    document.getElementById("status").innerHTML = `Device #${payload.device}: (${payload.status})`
 }
 
 document.addEventListener('websocketCreate', function () {

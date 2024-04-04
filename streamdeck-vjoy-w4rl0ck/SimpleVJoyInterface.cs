@@ -108,6 +108,11 @@ public sealed class SimpleVJoyInterface
         Status = status;
         var level = GetTracingLevelForStatus(status);
         Logger.Instance.LogMessage(level, $"vJoy device '{CurrentVJoyId}' status is now '{status}'");
+        SendStatusUpdateSignal();
+    }
+
+    public void SendStatusUpdateSignal()
+    {
         VJoyStatusUpdateSignal?.Invoke();
     }
 
@@ -240,9 +245,20 @@ public sealed class SimpleVJoyInterface
                 Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
                 _maxAxisValue = 32767;
             }
-
+            ResetAxis();
             UpdateVJoy();
             ChangeStatus(VJoyStatus.Connected);
+        }
+    }
+
+    private void ResetAxis()
+    {
+        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
+        {
+            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
+            ref var axisRef = ref GetAxisReference(index);
+            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
+            else axisRef = 0;
         }
     }
 

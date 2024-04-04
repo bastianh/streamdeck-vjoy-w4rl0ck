@@ -38,7 +38,7 @@ public class SimpleButtonAction : KeypadBase
     {
         Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin += Connection_OnSendToPlugin;
+        Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
     }
 

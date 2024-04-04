@@ -6,7 +6,12 @@ namespace streamdeck_vjoy_w4rl0ck;
 
 public class GlobalSettings
 {
-    [JsonProperty(PropertyName = "vjoy")] public uint VJoyDeviceId { get; set; }
+    [JsonProperty(PropertyName = "vjoy")] 
+    public uint VJoyDeviceId { get; set; }
+    
+    [JsonProperty(PropertyName = "axis")] 
+    public ushort[] AxisConfiguration { get; set; }
+
 }
 
 public sealed class Configuration : IDisposable
@@ -51,13 +56,16 @@ public sealed class Configuration : IDisposable
         if (payload?.Settings != null && payload.Settings.Count > 0)
         {
             GlobalSettings = payload.Settings.ToObject<GlobalSettings>();
+            // add new config if it's missing
+            GlobalSettings.AxisConfiguration ??= new ushort[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
         }
         else // Global settings do not exist, create new one and SAVE it
         {
             Logger.Instance.LogMessage(TracingLevel.WARN, "No global settings found, creating new object");
             GlobalSettings = new GlobalSettings
             {
-                VJoyDeviceId = 0
+                VJoyDeviceId = 0,
+                AxisConfiguration = [0,0,0,0,0,0,0,0]
             };
             SetGlobalSettings();
         }
@@ -71,6 +79,7 @@ public sealed class Configuration : IDisposable
     {
         var configForm = new ConfigForm.ConfigForm();
         configForm.ShowDialog();
+        SimpleVJoyInterface.Instance.SendStatusUpdateSignal();
     }
 
     public void SetGlobalSettings()
