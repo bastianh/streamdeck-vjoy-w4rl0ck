@@ -64,7 +64,7 @@ public sealed class Configuration : IDisposable
             Logger.Instance.LogMessage(TracingLevel.WARN, "No global settings found, creating new object");
             GlobalSettings = new GlobalSettings
             {
-                VJoyDeviceId = 0,
+                VJoyDeviceId = 1,
                 AxisConfiguration = [0,0,0,0,0,0,0,0]
             };
             SetGlobalSettings();
