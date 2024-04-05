@@ -88,8 +88,8 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     {
         if (_settings.ButtonAction > 0)
         {
-            if (payload.IsInMultiAction) _oneTickActive = true;
-            _timer.Start();
+            TimerTick();
+            if (!payload.IsInMultiAction) _timer.Start();
         }
         else
         {
@@ -99,7 +99,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void KeyReleased(KeyPayload payload)
     {
-        if (_timer.Enabled && !payload.IsInMultiAction) _timer.Stop();
+        if (_timer.Enabled) _timer.Stop();
     }
 
 
@@ -150,7 +150,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
                 break;
         }
 
-        if (_oneTickActive || _settings.ButtonAction == 0) _timer.Stop();
+        if (_settings.ButtonAction == 0) _timer.Stop();
     }
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -238,7 +238,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     private readonly System.Timers.Timer _timer = new System.Timers.Timer(100);
     private readonly SimpleVJoyInterface _simpleVJoyInterface = SimpleVJoyInterface.Instance;
     private readonly Configuration _configuration = Configuration.Instance;
-    private bool _oneTickActive = false; 
     private readonly bool _isEncoder;
 
     #endregion
