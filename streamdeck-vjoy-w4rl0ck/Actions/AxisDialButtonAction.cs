@@ -66,7 +66,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         if (!_isEncoder && !_settings.SetTitleValue) return;
         if (_configuration.GlobalSettings.AxisConfiguration[_settings.Axis] == 1) value -= 0.5f;
         if (Math.Abs(value - (-0f)) < 0.001) value = Math.Abs(value);
-        var valueString = value.ToString("P0");
+        var valueString = value.ToString("P0").Replace(" ", string.Empty);;
         if (_isEncoder)
         {
             var dict = new Dictionary<string, string> { { "value", valueString } };
