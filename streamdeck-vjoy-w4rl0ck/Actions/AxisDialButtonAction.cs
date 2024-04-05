@@ -36,6 +36,10 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
+#pragma warning disable 4014
+        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected) 
+            SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
+#pragma warning enable 4014
     }
 
     public override void Dispose()
@@ -64,12 +68,17 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     private async Task SendAxisUpdate(float value)
     {
         if (!_isEncoder && !_settings.SetTitleValue) return;
-        if (_configuration.GlobalSettings.AxisConfiguration[_settings.Axis] == 1) value -= 0.5f;
+        var indicator = (int)(value * 100);
+        if (_configuration.GlobalSettings.AxisConfiguration[_settings.Axis] == 1) value = (value - 0.5f) * 2;
         if (Math.Abs(value - (-0f)) < 0.001) value = Math.Abs(value);
         var valueString = value.ToString("P0").Replace(" ", string.Empty);;
         if (_isEncoder)
         {
-            var dict = new Dictionary<string, string> { { "value", valueString } };
+            var dict = new JObject
+            {
+                ["value"] = valueString,
+                ["indicator"] = new JObject { ["value"] = indicator, ["enabled"] = true }
+            };
             await Connection.SetFeedbackAsync(dict);
         }
         if (_settings.SetTitleValue) await Connection.SetTitleAsync(valueString);
@@ -147,6 +156,9 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         Tools.AutoPopulateSettings(_settings, payload.Settings);
+        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected) 
+            SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
+        if (!_settings.SetTitleValue) Connection.SetTitleAsync("");
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
@@ -207,6 +219,8 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
     {
+        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected) 
+            await SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
         if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
     }
 

@@ -32,7 +32,7 @@ public sealed class SimpleVJoyInterface
     private static readonly object SingletonLockObject = new();
     private readonly object _updateLockObject = new();
     private readonly vJoy _vJoy;
-    private Configuration _configuration;
+    private readonly Configuration _configuration;
     private vJoy.JoystickState _iReport;
     private long _maxAxisValue;
 
@@ -56,8 +56,7 @@ public sealed class SimpleVJoyInterface
         {
             lock (SingletonLockObject) // Ensure thread safety
             {
-                if (_instance == null) _instance = new SimpleVJoyInterface();
-                return _instance;
+                return _instance ??= new SimpleVJoyInterface();
             }
         }
     }
@@ -114,6 +113,12 @@ public sealed class SimpleVJoyInterface
     public void SendStatusUpdateSignal()
     {
         VJoyStatusUpdateSignal?.Invoke();
+    }
+
+    public float GetCurrentAxisValue(ushort axis)
+    {
+        ref var axisRef = ref GetAxisReference(axis);
+        return (float)axisRef / _maxAxisValue;
     }
 
     private ref int GetAxisReference(ushort axis)
