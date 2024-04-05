@@ -74,7 +74,7 @@ function websocketOnMessage(evt) {
 }
 
 function loadConfiguration(payload) {
-    console.log('loadConfiguration', payload);
+    // console.log('loadConfiguration', payload);
     for (var key in payload) {
         try {
             var elem = document.getElementById(key);
@@ -106,7 +106,7 @@ function loadConfiguration(payload) {
             } else { // Normal value
                 elem.value = payload[key];
             }
-            console.log("Load", key, payload[key]);
+            // console.log("Load", key, payload[key]);
         } catch (err) {
             console.warn("loadConfiguration failed for key", key, err);
         }

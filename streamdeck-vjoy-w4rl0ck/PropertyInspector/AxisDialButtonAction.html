@@ -8,12 +8,15 @@
     <meta content=black name=apple-mobile-web-app-status-bar-style>
     <title>vJoy Settings</title>
     <link href="sdpi.css" rel="stylesheet">
+    <link rel="stylesheet" href="rangeTooltip.css">
     <script src="sdtools.common.js"></script>
+    <script src="rangeTooltip.js"></script>
     <script src="local.js"></script>
 </head>
 <body>
 <div class="sdpi-wrapper">
-
+    <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
+    
     <div class="sdpi-heading">vJoy Settings</div>
     <div class="sdpi-item" id="axis_item">
         <div class="sdpi-item-label">Axis</div>
@@ -46,17 +49,20 @@
         </div>
     </div>
 
-    <div class="sdpi-item" id="range_with_meters" type="range">
+    <div type="range" class="sdpi-item sdShowTooltip" id="range_with_meters">
         <div class="sdpi-item-label">Sensivity</div>
         <div class="sdpi-item-value">
-            <span class="clickable" value="50">50%</span>
-            <input class="sdProperty" id="sensitivity" max="400" min="50" oninput="setSettings()" type="range"
+            <span class="clickable" value="50">50</span>
+            <input class="sdProperty" id="sensitivity" max="500" min="50" oninput="setSettings()" type="range" data-suffix=" %"
                    value=100>
-            <span class="clickable" value="400">400%</span>
+            <span class="clickable" value="500">500</span>
+            <datalist id="numbers">
+                <option>100</option>
+            </datalist>
+            <label for="sensitivity" class="rangeLabel"></label>
         </div>
     </div>
     
-
     <div class="sdpi-heading">Global Settings</div>
     <div class="sdpi-item">
         <details class="message info">
@@ -69,7 +75,6 @@
             Configuration
         </button>
     </div>
-
 </div>
 </body>
 </html>
