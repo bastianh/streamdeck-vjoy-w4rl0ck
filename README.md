@@ -16,6 +16,10 @@
 - Axis can be used as slider (0 - 100%) or regular axis initialized with a center (-100% - +100%)
 - Stream Deck+ dial support to control vJoy axis
 
+### Download
+
+Downloads available in the [releases](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/releases) section.
+
 ### Available Actions
 
 ![vjoy_demo](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/f528fc4a-83e2-4eb5-9f27-414e96fe7b40) ![vjoy_demo2](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/b5d401df-d58a-4be9-be27-339b5b0f0a99)
