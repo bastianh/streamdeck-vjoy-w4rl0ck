@@ -16,6 +16,9 @@ public class SimpleButtonAction : KeypadBase
         Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
 
+        _timer.AutoReset = false;
+        _timer.Elapsed += (sender, e) => TimerTick();
+        
         if (payload.Settings == null || payload.Settings.Count == 0)
         {
             _settings = PluginSettings.CreateDefaultSettings();
@@ -31,7 +34,6 @@ public class SimpleButtonAction : KeypadBase
     {
         var action = e.Event.Payload["action"]?.ToString();
         if (action == "showconfig") Configuration.ShowConfiguration();
-        Logger.Instance.LogMessage(TracingLevel.INFO, $"Connection_OnSendToPlugin '{action}'");
     }
 
     public override void Dispose()
@@ -40,16 +42,29 @@ public class SimpleButtonAction : KeypadBase
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
         Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
+        _timer.Stop();
+        _timer.Dispose();
     }
 
     public override void KeyPressed(KeyPayload payload)
-    {
+    {        
+        Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed '{payload.IsInMultiAction}'");
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        if (payload.IsInMultiAction) _timer.Start();
     }
 
     public override void KeyReleased(KeyPayload payload)
     {
+        if (payload.IsInMultiAction) return;
+        Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Released '{payload.IsInMultiAction}'");
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+    }
+    
+    private void TimerTick()
+    {
+        Logger.Instance.LogMessage(TracingLevel.INFO, $"Timer Released");
+        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        _timer.Stop();    
     }
 
     public override void OnTick()
@@ -119,6 +134,7 @@ public class SimpleButtonAction : KeypadBase
     #region Private Members
 
     private readonly PluginSettings _settings;
+    private readonly System.Timers.Timer _timer = new System.Timers.Timer(100);
     private bool _propertyInspectorIsOpen;
 
     #endregion

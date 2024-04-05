@@ -11,7 +11,7 @@
           "FontSize": "12"
         }
       ],
-      "SupportedInMultiActions": false,
+      "SupportedInMultiActions": true,
       "Tooltip": "A button that can trigger a vJoy button",
       "PropertyInspectorPath": "PropertyInspector/SimpleButtonAction.html"
     },
@@ -31,7 +31,7 @@
           "FontSize": "12"
         }
       ],
-      "SupportedInMultiActions": false,
+      "SupportedInMultiActions": true,
       "Tooltip": "A button that can toggle a vJoy button",
       "PropertyInspectorPath": "PropertyInspector/SimpleButtonAction.html"
     },
@@ -57,7 +57,7 @@
           "Push": "Configurable action"
         }
       },
-      "SupportedInMultiActions": false,
+      "SupportedInMultiActions": true,
       "Tooltip": "A button or stream deck+ dial that controls a vJoy axis",
       "PropertyInspectorPath": "PropertyInspector/AxisDialButtonAction.html"
     }

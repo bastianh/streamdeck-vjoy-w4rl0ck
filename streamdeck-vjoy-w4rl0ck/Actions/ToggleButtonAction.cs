@@ -42,7 +42,6 @@ public class ToggleButtonAction : KeypadBase
     {
         var action = e.Event.Payload["action"]?.ToString();
         if (action == "showconfig") Configuration.ShowConfiguration();
-        Logger.Instance.LogMessage(TracingLevel.INFO, $"Connection_OnSendToPlugin '{action}'");
     }
     
     private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)

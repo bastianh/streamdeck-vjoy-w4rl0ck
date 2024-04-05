@@ -1,4 +1,5 @@
-﻿using BarRaider.SdTools;
+﻿using System.DirectoryServices.ActiveDirectory;
+using BarRaider.SdTools;
 using BarRaider.SdTools.Events;
 using BarRaider.SdTools.Payloads;
 using BarRaider.SdTools.Wrappers;
@@ -52,7 +53,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     {
         var action = e.Event.Payload["action"]?.ToString();
         if (action == "showconfig") Configuration.ShowConfiguration();
-        Logger.Instance.LogMessage(TracingLevel.INFO, $"Connection_OnSendToPlugin '{action}'");
     }
     
     private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
@@ -77,10 +77,10 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void KeyPressed(KeyPayload payload)
     {
-        Logger.Instance.LogMessage(TracingLevel.INFO, "Key Pressed");
         if (_settings.ButtonAction > 0)
         {
-            _timer.Enabled = true;
+            if (payload.IsInMultiAction) _oneTickActive = true;
+            _timer.Start();
         }
         else
         {
@@ -90,11 +90,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void KeyReleased(KeyPayload payload)
     {
-        Logger.Instance.LogMessage(TracingLevel.INFO, "Key Released");
-        if (_settings.ButtonAction > 0)
-        {
-            _timer.Enabled = false;
-        }
+        if (_timer.Enabled && !payload.IsInMultiAction) _timer.Stop();
     }
 
 
@@ -110,7 +106,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void DialUp(DialPayload payload)
     {
-        Logger.Instance.LogMessage(TracingLevel.INFO, "Dial Released ");
     }
 
     public override void TouchPress(TouchpadPressPayload payload)
@@ -136,18 +131,17 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     
     private void TimerTick()
     {
-        if (_settings.ButtonAction == 1)
+        switch (_settings.ButtonAction)
         {
-            _simpleVJoyInterface.MoveAxis(_settings.Axis, _settings.Sensitivity / 100.0);
-        } 
-        else if (_settings.ButtonAction == 2)
-        {
-            _simpleVJoyInterface.MoveAxis(_settings.Axis, - _settings.Sensitivity / 100.0);
+            case 1:
+                _simpleVJoyInterface.MoveAxis(_settings.Axis, _settings.Sensitivity / 100.0);
+                break;
+            case 2:
+                _simpleVJoyInterface.MoveAxis(_settings.Axis, - _settings.Sensitivity / 100.0);
+                break;
         }
-        else
-        {
-            _timer.Enabled = false;
-        }
+
+        if (_oneTickActive || _settings.ButtonAction == 0) _timer.Stop();
     }
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
@@ -227,9 +221,10 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private readonly PluginSettings _settings;
     private bool _propertyInspectorIsOpen;
-    private System.Timers.Timer _timer = new System.Timers.Timer(100);
-    private SimpleVJoyInterface _simpleVJoyInterface = SimpleVJoyInterface.Instance;
-    private Configuration _configuration = Configuration.Instance;
+    private readonly System.Timers.Timer _timer = new System.Timers.Timer(100);
+    private readonly SimpleVJoyInterface _simpleVJoyInterface = SimpleVJoyInterface.Instance;
+    private readonly Configuration _configuration = Configuration.Instance;
+    private bool _oneTickActive = false; 
     private readonly bool _isEncoder;
 
     #endregion

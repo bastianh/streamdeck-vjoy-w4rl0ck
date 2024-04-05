@@ -22,12 +22,14 @@
 
 #### Simple Button
 
-A simple button is connected to a vJoy button and activates the button als long as it is pressed
+A simple button is connected to a vJoy button and activates the button als long as it is pressed.
+If used in a MultiAction the button is active for 100ms.
 
 #### Toggle Button 
 
 The toggle button activates the vjoy button when pressed. The vjoy button stays active until it is pressed again. The Action shows a second state while the vjoy button is active.
 If there is a simple button controlling the same vjoy button it will also update the state when the simple button is pressed.
+In MultiActions the state is toggled as usual.
 
 #### Axis 
 
@@ -36,6 +38,7 @@ When used at buttons it can control the axis, while pressed the axis will move u
 When used as a dial you can rotate the dial to control the axis and press the dial to reset to zero.
 It's possible to change the sensivity of the action to change the speed the axis moves.
 It's also possible to control the same joystick axis with multiple buttons or dials with different sensitivitys to have a finer control over the axis.
+In MultiActions, depending on the setting in the property inspector, it will reset the axis to zero or move the axis for one step.
 
 ### Any Problems?
 
