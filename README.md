@@ -18,7 +18,7 @@
 
 ### Available Actions
 
-![vjoy_demo](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/f528fc4a-83e2-4eb5-9f27-414e96fe7b40)
+![vjoy_demo](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/f528fc4a-83e2-4eb5-9f27-414e96fe7b40) ![vjoy_demo2](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/b5d401df-d58a-4be9-be27-339b5b0f0a99)
 
 #### Simple Button
 
@@ -31,7 +31,7 @@ If there is a simple button controlling the same vjoy button it will also update
 
 #### Axis 
 
-The Axis action can be used in the Steam Deck as buttons or in the Steam Deck+ as a Dail.
+The Axis action can be used in the Steam Deck as buttons or in the Steam Deck+ as a dial.
 When used at buttons it can control the axis, while pressed the axis will move until released or it can be set to set the axis to 0.
 When used as a dial you can rotate the dial to control the axis and press the dial to reset to zero.
 It's possible to change the sensivity of the action to change the speed the axis moves.
