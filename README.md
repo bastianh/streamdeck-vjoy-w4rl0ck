@@ -12,7 +12,30 @@
 - Supports up to 128 buttons
 - Simple buttons that trigger a vJoy button when pressed, as long as it is pressed
 - Toggle buttons that trigger a vJoy button until it is pressed again. It can show a different Title/Image while the action is active.
+- Buttons to control a joystick axis... ( up, down, reset to 0 )
+- Axis can be used as slider (0 - 100%) or regular axis initialized with a center (-100% - +100%)
 - Stream Deck+ dial support to control vJoy axis
+
+### Available Actions
+
+![vjoy_demo](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/assets/17590/f528fc4a-83e2-4eb5-9f27-414e96fe7b40)
+
+#### Simple Button
+
+A simple button is connected to a vJoy button and activates the button als long as it is pressed
+
+#### Toggle Button 
+
+The toggle button activates the vjoy button when pressed. The vjoy button stays active until it is pressed again. The Action shows a second state while the vjoy button is active.
+If there is a simple button controlling the same vjoy button it will also update the state when the simple button is pressed.
+
+#### Axis 
+
+The Axis action can be used in the Steam Deck as buttons or in the Steam Deck+ as a Dail.
+When used at buttons it can control the axis, while pressed the axis will move until released or it can be set to set the axis to 0.
+When used as a dial you can rotate the dial to control the axis and press the dial to reset to zero.
+It's possible to change the sensivity of the action to change the speed the axis moves.
+It's also possible to control the same joystick axis with multiple buttons or dials with different sensitivitys to have a finer control over the axis.
 
 ### Any Problems?
 
