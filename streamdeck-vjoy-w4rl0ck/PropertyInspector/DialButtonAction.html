@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"
+          name=viewport>
+    <meta content=yes name=apple-mobile-web-app-capable>
+    <meta content=black name=apple-mobile-web-app-status-bar-style>
+    <title>vJoy Settings</title>
+    <link href="sdpi.css" rel="stylesheet">
+    <script src="sdtools.common.js"></script>
+    <script src="local.js"></script>
+</head>
+<body>
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">Rotate Dial</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Button ID CCW</div>
+        <input class="sdpi-item-value sdProperty" id="ccw_button_id" oninput="setSettings()" pattern="\d{1,3}"
+               placeholder="1-128 (empty to disable)" value="">
+    </div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Button ID CW</div>
+        <input class="sdpi-item-value sdProperty" id="cw_button_id" oninput="setSettings()" pattern="\d{1,3}"
+               placeholder="1-128 (empty to disable)" value="">
+    </div>
+
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>Each tick will activate the button for 50ms with a 50ms delay for the next press. If the dial is turned fast it queues the button presses. If 50ms is to short please let me know, but longer times will cause longer queue time.</summary>
+        </details>
+    </div>
+    
+    <div class="sdpi-heading">Press Dial</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Button ID</div>
+        <input class="sdpi-item-value sdProperty" id="dial_button_id" oninput="setSettings()" pattern="\d{1,3}"
+               placeholder="1-128 (empty to disable)" value="">
+    </div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>The button active as long as the dial is pressed</summary>
+        </details>
+    </div>
+
+    <div class="sdpi-heading">Touch Display</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Button ID</div>
+        <input class="sdpi-item-value sdProperty" id="touch_button_id" oninput="setSettings()" pattern="\d{1,3}"
+               placeholder="1-128 (empty to disable)" value="">
+    </div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>The button is pressed for 50ms</summary>
+        </details>
+    </div>
+
+    <div class="sdpi-heading">Global Settings</div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>Status: <span id="status"></span></summary>
+        </details>
+    </div>
+
+    <div class="sdpi-item">
+        <button class="sdpi-item-value" id="config_button" onclick="sendPayloadToPlugin({'action':'showconfig'})">Open
+            Configuration
+        </button>
+    </div>
+</div>
+</body>
+</html>

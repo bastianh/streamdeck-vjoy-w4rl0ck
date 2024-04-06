@@ -60,6 +60,31 @@
       "SupportedInMultiActions": true,
       "Tooltip": "A button or stream deck+ dial that controls a vJoy axis",
       "PropertyInspectorPath": "PropertyInspector/AxisDialButtonAction.html"
+    },
+    {
+      "UUID": "dev.w4rl0ck.streamdeck.vjoy.dialbuttonaction",
+      "Icon": "Images/icon",
+      "Name": "Dial (Buttons)",
+      "States": [
+        {
+          "Image": "Images/simple",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "Controllers": [
+        "Encoder"
+      ],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Rotate": "CW/CCW Button",
+          "Push": "Configurable action"
+        }
+      },
+      "SupportedInMultiActions": false,
+      "Tooltip": "A stream deck+ dial that pushes vjoy buttons when rotated",
+      "PropertyInspectorPath": "PropertyInspector/DialButtonAction.html"
     }
   ],
   "Author": "Bastian Hoyer",
@@ -67,7 +92,7 @@
   "Description": "The StreamDeck vJoy Controller Plugin is a powerful tool that transforms your StreamDeck into a flexible vJoy controller. This plugin allows users to map StreamDeck buttons to vJoy virtual joystick inputs, enhancing the interactivity and control within any software that supports joystick inputs.",
   "Icon": "Images/pluginIcon",
   "URL": "https://github.com/bastianh/streamdeck-vjoy-w4rl0ck",
-  "Version": "0.1.5",
+  "Version": "0.1.6",
   "CodePath": "streamdeck-vjoy-w4rl0ck",
   "Category": "vJoy",
   "CategoryIcon": "Images/categoryIcon",

@@ -108,6 +108,9 @@
         <None Update="assets\rcheck.svg">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="PropertyInspector\DialButtonAction.html">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
