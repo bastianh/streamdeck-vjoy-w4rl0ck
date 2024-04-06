@@ -30,9 +30,9 @@ public sealed class SimpleVJoyInterface
 
     private static SimpleVJoyInterface _instance;
     private static readonly object SingletonLockObject = new();
+    private readonly Configuration _configuration;
     private readonly object _updateLockObject = new();
     private readonly vJoy _vJoy;
-    private readonly Configuration _configuration;
     private vJoy.JoystickState _iReport;
     private long _maxAxisValue;
 
@@ -250,6 +250,7 @@ public sealed class SimpleVJoyInterface
                 Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
                 _maxAxisValue = 32767;
             }
+
             ResetAxis();
             UpdateVJoy();
             ChangeStatus(VJoyStatus.Connected);

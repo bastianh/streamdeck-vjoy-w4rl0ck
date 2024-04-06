@@ -1,6 +1,6 @@
 /* https://cdn.jsdelivr.net/gh/barraider/streamdeck-easypi@latest/src/sdpi.css */
 
-.keypadOnly {
+.keypadOnly, .encoderOnly {
     display: none;
 }
 

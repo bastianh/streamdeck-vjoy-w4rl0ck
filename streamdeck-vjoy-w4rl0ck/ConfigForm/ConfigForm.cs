@@ -4,13 +4,13 @@ namespace streamdeck_vjoy_w4rl0ck.ConfigForm;
 
 public partial class ConfigForm : Form
 {
-    private readonly List<uint> _vJoyDevices;
     private readonly ComboBox[] _axis;
+    private readonly List<uint> _vJoyDevices;
 
     public ConfigForm()
     {
         InitializeComponent();
-        _axis = new ComboBox[] { axis1, axis2, axis3, axis4, axis5, axis6, axis7, axis8 };
+        _axis = new[] { axis1, axis2, axis3, axis4, axis5, axis6, axis7, axis8 };
         _vJoyDevices = SimpleVJoyInterface.Instance.ConfiguredDevices();
 
         foreach (var i in _vJoyDevices)
@@ -22,7 +22,8 @@ public partial class ConfigForm : Form
 
         var axisConfiguration = Configuration.Instance.GlobalSettings.AxisConfiguration;
 
-        Logger.Instance.LogMessage(TracingLevel.WARN, $"Message {Configuration.Instance.GlobalSettings.AxisConfiguration}");
+        Logger.Instance.LogMessage(TracingLevel.WARN,
+            $"Message {Configuration.Instance.GlobalSettings.AxisConfiguration}");
         for (var index = 0; index < _axis.Length; index++)
         {
             var comboBox = _axis[index];

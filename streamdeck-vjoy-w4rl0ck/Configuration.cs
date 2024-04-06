@@ -6,12 +6,9 @@ namespace streamdeck_vjoy_w4rl0ck;
 
 public class GlobalSettings
 {
-    [JsonProperty(PropertyName = "vjoy")] 
-    public uint VJoyDeviceId { get; set; }
-    
-    [JsonProperty(PropertyName = "axis")] 
-    public ushort[] AxisConfiguration { get; set; }
+    [JsonProperty(PropertyName = "vjoy")] public uint VJoyDeviceId { get; set; }
 
+    [JsonProperty(PropertyName = "axis")] public ushort[] AxisConfiguration { get; set; }
 }
 
 public sealed class Configuration : IDisposable
@@ -65,7 +62,7 @@ public sealed class Configuration : IDisposable
             GlobalSettings = new GlobalSettings
             {
                 VJoyDeviceId = 1,
-                AxisConfiguration = [0,0,0,0,0,0,0,0]
+                AxisConfiguration = [0, 0, 0, 0, 0, 0, 0, 0]
             };
             SetGlobalSettings();
         }

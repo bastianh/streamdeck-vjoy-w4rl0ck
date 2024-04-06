@@ -3,6 +3,7 @@ using BarRaider.SdTools.Events;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
@@ -18,7 +19,7 @@ public class SimpleButtonAction : KeypadBase
 
         _timer.AutoReset = false;
         _timer.Elapsed += (sender, e) => TimerTick();
-        
+
         if (payload.Settings == null || payload.Settings.Count == 0)
         {
             _settings = PluginSettings.CreateDefaultSettings();
@@ -47,7 +48,7 @@ public class SimpleButtonAction : KeypadBase
     }
 
     public override void KeyPressed(KeyPayload payload)
-    {        
+    {
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed '{payload.IsInMultiAction}'");
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Down);
         if (payload.IsInMultiAction) _timer.Start();
@@ -59,12 +60,12 @@ public class SimpleButtonAction : KeypadBase
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Released '{payload.IsInMultiAction}'");
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
     }
-    
+
     private void TimerTick()
     {
-        Logger.Instance.LogMessage(TracingLevel.INFO, $"Timer Released");
+        Logger.Instance.LogMessage(TracingLevel.INFO, "Timer Released");
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
-        _timer.Stop();    
+        _timer.Stop();
     }
 
     public override void OnTick()
@@ -134,7 +135,7 @@ public class SimpleButtonAction : KeypadBase
     #region Private Members
 
     private readonly PluginSettings _settings;
-    private readonly System.Timers.Timer _timer = new System.Timers.Timer(100);
+    private readonly Timer _timer = new(100);
     private bool _propertyInspectorIsOpen;
 
     #endregion

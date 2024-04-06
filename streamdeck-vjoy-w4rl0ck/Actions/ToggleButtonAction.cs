@@ -43,7 +43,7 @@ public class ToggleButtonAction : KeypadBase
         var action = e.Event.Payload["action"]?.ToString();
         if (action == "showconfig") Configuration.ShowConfiguration();
     }
-    
+
     private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
     {
         if (buttonId != _settings.ButtonId) return;
@@ -64,34 +64,6 @@ public class ToggleButtonAction : KeypadBase
     public override void OnTick()
     {
     }
-    
-    
-    #region Property Inspector
-
-    private async void Connection_OnPropertyInspectorDidAppear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
-    {
-        await SendPropertyInspectorData();
-        _propertyInspectorIsOpen = true;
-    }
-
-    private void Connection_OnPropertyInspectorDidDisappear(object sender,
-        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
-    {
-        _propertyInspectorIsOpen = false;
-    }
-
-    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
-    {
-        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
-    }
-
-    private async Task SendPropertyInspectorData()
-    {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
-    }
-
-    #endregion
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
@@ -125,7 +97,35 @@ public class ToggleButtonAction : KeypadBase
             return instance;
         }
     }
-    
+
+
+    #region Property Inspector
+
+    private async void Connection_OnPropertyInspectorDidAppear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidAppear> e)
+    {
+        await SendPropertyInspectorData();
+        _propertyInspectorIsOpen = true;
+    }
+
+    private void Connection_OnPropertyInspectorDidDisappear(object sender,
+        SDEventReceivedEventArgs<PropertyInspectorDidDisappear> e)
+    {
+        _propertyInspectorIsOpen = false;
+    }
+
+    private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
+    {
+        if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
+    }
+
+    private async Task SendPropertyInspectorData()
+    {
+        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+    }
+
+    #endregion
+
     #region Private Members
 
     private readonly PluginSettings _settings;

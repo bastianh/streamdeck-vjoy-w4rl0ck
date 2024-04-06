@@ -34,14 +34,13 @@ function setElementLabel(elem, str) {
     let label = elem.querySelector('.rangeLabel');
     if (label) {
         label.innerHTML = str;
-    }
-    else {
+    } else {
         console.log('setElementLabel ERROR! No .rangeLabel found', elem);
     }
 }
 
 function setRangeTooltips() {
-    console.log("Loading setRangeTooltips");
+    // console.log("Loading setRangeTooltips");
 
     if (!tooltip) {
         tooltip = document.querySelector('.sdpi-info-label');
@@ -95,25 +94,11 @@ function setRangeTooltips() {
         rangeSelector.addEventListener("change", fn, false);
 
         document.addEventListener(
-            'settingsUpdated',
-            function () {
-                // console.log('rangeTooltip settingsUpdated called');
-                window.setTimeout(function () {
-                    let str = calcRangeLabel(rangeSelector);
-                    setElementLabel(elem, str);
-                }, 500);
-            },
-            false
-        );
-
-        document.addEventListener(
-            'websocketCreate',
+            'configurationLoaded',
             function () {
                 // console.log('rangeTooltip websocketCreate called');
-                window.setTimeout(function () {
-                    let str = calcRangeLabel(rangeSelector);
-                    setElementLabel(elem, str);
-                }, 500);
+                let str = calcRangeLabel(rangeSelector);
+                setElementLabel(elem, str);
             },
             false
         );

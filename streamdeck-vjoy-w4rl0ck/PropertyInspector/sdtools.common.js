@@ -21,7 +21,7 @@ var websocket = null,
 
 function showElementsByClassName(className) {
     var elements = document.getElementsByClassName(className);
-    for(var i = 0; i < elements.length; i++){
+    for (var i = 0; i < elements.length; i++) {
         elements[i].style.display = "block";
     }
 }
@@ -48,8 +48,9 @@ function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, 
 
     if (actionInfo?.payload?.controller === "Keypad") {
         showElementsByClassName("keypadOnly");
+    } else if (actionInfo?.payload?.controller === "Encoder") {
+        showElementsByClassName("encoderOnly");
     }
-    
 }
 
 function websocketOnOpen() {
@@ -111,9 +112,10 @@ function loadConfiguration(payload) {
             console.warn("loadConfiguration failed for key", key, err);
         }
     }
+    document.dispatchEvent(new Event('configurationLoaded'));
 }
 
-function setSettings() {
+function originalSetSettings() {
     var payload = {};
     var elements = document.getElementsByClassName("sdProperty");
 
@@ -140,10 +142,27 @@ function setSettings() {
         } else { // Normal value
             payload[key] = elem.value;
         }
-        console.log("Save: " + key + "<=" + payload[key]);
+        // console.log("Save: " + key + "<=" + payload[key]);
     });
     setSettingsToPlugin(payload);
 }
+
+const debounce = (mainFunction, delay) => {
+    // Declare a variable called 'timer' to store the timer ID
+    let timer;
+
+    // Return an anonymous function that takes in any number of arguments
+    return function (...args) {
+        // Clear the previous timer to prevent the execution of 'mainFunction'
+        clearTimeout(timer);
+
+        // Set a new timer that will execute 'mainFunction' after the specified delay
+        timer = setTimeout(() => {
+            mainFunction(...args);
+        }, delay);
+    };
+};
+const setSettings = debounce(originalSetSettings, 250);
 
 function setSettingsToPlugin(payload) {
     if (websocket && (websocket.readyState === 1)) {
@@ -153,8 +172,7 @@ function setSettingsToPlugin(payload) {
             'payload': payload
         };
         websocket.send(JSON.stringify(json));
-        var event = new Event('settingsUpdated');
-        document.dispatchEvent(event);
+        document.dispatchEvent(new Event('settingsUpdated'));
     }
 }
 

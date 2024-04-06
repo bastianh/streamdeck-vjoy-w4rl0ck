@@ -8,7 +8,7 @@
     <meta content=black name=apple-mobile-web-app-status-bar-style>
     <title>vJoy Settings</title>
     <link href="sdpi.css" rel="stylesheet">
-    <link rel="stylesheet" href="rangeTooltip.css">
+    <link href="rangeTooltip.css" rel="stylesheet">
     <script src="sdtools.common.js"></script>
     <script src="rangeTooltip.js"></script>
     <script src="local.js"></script>
@@ -16,7 +16,7 @@
 <body>
 <div class="sdpi-wrapper">
     <div class="sdpi-info-label hidden" style="top: -1000;" value="">Tooltip</div>
-    
+
     <div class="sdpi-heading">vJoy Settings</div>
     <div class="sdpi-item" id="axis_item">
         <div class="sdpi-item-label">Axis</div>
@@ -42,22 +42,89 @@
             </select>
         </div>
 
-        <div type="checkbox" class="sdpi-item">
+        <div class="sdpi-item" type="checkbox">
             <div class="sdpi-item-label">Title</div>
-            <input class="sdpi-item-value sdProperty sdCheckbox" id="title_value" type="checkbox" oninput="setSettings()">
+            <input class="sdpi-item-value sdProperty sdCheckbox" id="title_value" oninput="setSettings()"
+                   type="checkbox">
             <label for="title_value"><span></span>Set current value as title</label>
         </div>
     </div>
 
-    <div type="range" class="sdpi-item sdShowTooltip" id="range_with_meters">
+    <div class="sdpi-item sdShowTooltip" id="range_with_meters" type="range">
         <div class="sdpi-item-label">Sensivity</div>
         <div class="sdpi-item-value">
-            <input class="sdProperty" id="sensitivity" max="500" step="10" min="50" oninput="setSettings()" type="range" data-suffix=" %"
+            <input class="sdProperty" data-suffix=" %" id="sensitivity" max="500" min="50" oninput="setSettings()" step="10"
+                   type="range"
                    value=100>
-            <label for="sensitivity" class="rangeLabel"></label>
+            <label class="rangeLabel" for="sensitivity"></label>
         </div>
     </div>
-    
+
+    <div class="encoderOnly">
+        <div class="sdpi-heading">Press Dial</div>
+
+        <div class="sdpi-item" type="checkbox">
+            <div class="sdpi-item-label">Reset Axis</div>
+            <div class="sdpi-item-value ">
+                <input class="sdProperty sdCheckbox" id="dial_reset_axis" oninput="setSettings()" type="checkbox">
+                <label for="dial_reset_axis"><span></span></label>
+            </div>
+        </div>
+
+        <div class="sdpi-item" type="checkbox">
+            <div class="sdpi-item-label">vJoy Button</div>
+            <div class="sdpi-item-value ">
+                <input class="sdProperty sdCheckbox" data-visible="dial_button_detail" id="dial_button_action"
+                       oninput="setSettings()" type="checkbox">
+                <label for="dial_button_action"><span></span></label>
+            </div>
+        </div>
+        <div id="dial_button_detail">
+            <div class="sdpi-item">
+                <div class="sdpi-item-label">Button ID</div>
+                <input class="sdpi-item-value sdProperty" id="dial_button_id" oninput="setSettings()" pattern="\d{1,3}"
+                       placeholder="1-128" value="">
+            </div>
+            <div class="sdpi-item">
+                <details class="message info">
+                    <summary>The button active as long as the dial is pressed</summary>
+                </details>
+            </div>
+        </div>
+
+        <div class="sdpi-heading">Touch Display</div>
+
+        <div class="sdpi-item" type="checkbox">
+            <div class="sdpi-item-label">Reset Axis</div>
+            <div class="sdpi-item-value ">
+                <input class="sdProperty sdCheckbox" id="touch_reset_axis" oninput="setSettings()" type="checkbox">
+                <label for="touch_reset_axis"><span></span></label>
+            </div>
+        </div>
+
+        <div class="sdpi-item" type="checkbox">
+            <div class="sdpi-item-label">vJoy Button</div>
+            <div class="sdpi-item-value">
+                <input class="sdProperty sdCheckbox" data-visible="touch_detail" id="touch_action" oninput="setSettings()"
+                       type="checkbox">
+                <label for="touch_action"><span></span></label>
+            </div>
+        </div>
+        <div id="touch_detail">
+            <div class="sdpi-item">
+                <div class="sdpi-item-label">Button ID</div>
+                <input class="sdpi-item-value sdProperty" id="touch_button_id" oninput="setSettings()" pattern="\d{1,3}"
+                       placeholder="1-128" value="">
+            </div>
+            <div class="sdpi-item">
+                <details class="message info">
+                    <summary>The button is pressed for 100ms</summary>
+                </details>
+            </div>
+        </div>
+
+    </div>
+
     <div class="sdpi-heading">Global Settings</div>
     <div class="sdpi-item">
         <details class="message info">
