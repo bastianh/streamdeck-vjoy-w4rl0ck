@@ -76,7 +76,7 @@
         "Encoder"
       ],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "$X1",
         "TriggerDescription": {
           "Rotate": "CW/CCW Button",
           "Push": "Configurable action"
