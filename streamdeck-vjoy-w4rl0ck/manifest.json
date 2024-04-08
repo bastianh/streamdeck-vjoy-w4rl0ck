@@ -16,6 +16,21 @@
       "PropertyInspectorPath": "PropertyInspector/SimpleButtonAction.html"
     },
     {
+      "UUID": "dev.w4rl0ck.streamdeck.vjoy.povbutton",
+      "Icon": "Images/icon",
+      "Name": "POV",
+      "States": [
+        {
+          "Image": "Images/simple",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "SupportedInMultiActions": true,
+      "Tooltip": "A button that can control a vJoy pov hat",
+      "PropertyInspectorPath": "PropertyInspector/PovButtonAction.html"
+    },
+    {
       "UUID": "dev.w4rl0ck.streamdeck.vjoy.togglebutton",
       "Icon": "Images/icon",
       "Name": "Toggle Button",

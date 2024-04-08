@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui,viewport-fit=cover"
+          name=viewport>
+    <meta content=yes name=apple-mobile-web-app-capable>
+    <meta content=black name=apple-mobile-web-app-status-bar-style>
+    <title>vJoy Settings</title>
+    <link href="sdpi.css" rel="stylesheet">
+    <script src="sdtools.common.js"></script>
+    <script src="local.js"></script>
+</head>
+<body>
+<div class="sdpi-wrapper">
+
+    <div class="sdpi-heading">vJoy Settings</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">POV</div>
+        <select class="sdpi-item-value select" data-setting="pov" data-default="0">
+            <option value="0">1</option>
+            <option value="1">2</option>
+            <option value="2">3</option>
+            <option value="3">4</option>
+        </select>
+    </div>
+
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Direction</div>
+        <select class="sdpi-item-value select" data-setting="direction" data-default="0">
+            <option value="0">Center</option>
+            <option value="1">Top</option>
+            <option value="2">Top Right</option>
+            <option value="3">Right</option>
+            <option value="4">Bottom Right</option>
+            <option value="5">Bottom</option>
+            <option value="6">Bottom Left</option>
+            <option value="7">Left</option>
+            <option value="8">Top Left</option>
+        </select>
+    </div>
+
+    <div class="sdpi-heading">Global Settings</div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>Status: <span id="status"></span></summary>
+        </details>
+    </div>
+
+    <div class="sdpi-item">
+        <button class="sdpi-item-value" id="config_button" onclick="sendPayloadToPlugin({'action':'showconfig'})">Open
+            Configuration
+        </button>
+    </div>
+
+</div>
+</body>
+</html>

@@ -115,6 +115,42 @@ public sealed class SimpleVJoyInterface
         VJoyStatusUpdateSignal?.Invoke();
     }
 
+    private ref uint GetPovReference(ushort pov)
+    {
+        switch (pov)
+        {
+            case 0:
+                return ref _iReport.bHats;
+            case 1:
+                return ref _iReport.bHatsEx1;
+            case 2:
+                return ref _iReport.bHatsEx2;
+            case 3:
+                return ref _iReport.bHatsEx3;
+        }
+        return ref _iReport.bHats;
+    }
+
+    private uint GetPovDirection(ushort direction)
+    {
+        switch (direction)
+        {
+            case 1:
+                default:
+                    return 0xFFFFFFFF;
+        }
+    }
+    
+    public void SetPovSwitch(ushort pov, uint direction)
+    {
+        ref var povRef = ref GetPovReference(pov);
+        if (direction == 0) povRef = 0xFFFFFFFF;
+        else povRef = (direction-1) * 4500;
+        UpdateVJoy();
+    }
+    
+    #region Axis
+
     public float GetCurrentAxisValue(ushort axis)
     {
         ref var axisRef = ref GetAxisReference(axis);
@@ -156,7 +192,6 @@ public sealed class SimpleVJoyInterface
         if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
     }
 
-
     public void MoveAxis(ushort axis, double percent)
     {
         if (_maxAxisValue == 0) return;
@@ -166,7 +201,11 @@ public sealed class SimpleVJoyInterface
 
         if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
     }
-
+    
+    #endregion
+    
+    #region Buttons
+    
     public void ButtonState(uint button, ButtonAction action)
     {
         var buttonId = button - 1;
@@ -215,7 +254,21 @@ public sealed class SimpleVJoyInterface
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
     }
+    
+    #endregion
 
+    private void ResetAxisAndPovs()
+    {
+        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
+        {
+            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
+            ref var axisRef = ref GetAxisReference(index);
+            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
+            else axisRef = 0;
+        }
+        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
+    }
+    
     public void ConnectToVJoy(uint id)
     {
         lock (SingletonLockObject) // Ensure thread safety
@@ -251,27 +304,15 @@ public sealed class SimpleVJoyInterface
                 _maxAxisValue = 32767;
             }
 
-            ResetAxis();
+            ResetAxisAndPovs();
             UpdateVJoy();
             ChangeStatus(VJoyStatus.Connected);
         }
     }
-
-    private void ResetAxis()
-    {
-        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
-        {
-            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
-            ref var axisRef = ref GetAxisReference(index);
-            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
-            else axisRef = 0;
-        }
-    }
-
+    
     private bool UpdateVJoy()
     {
         _iReport.bDevice = (byte)CurrentVJoyId;
-        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
         if (_vJoy.UpdateVJD(CurrentVJoyId, ref _iReport))
             return true;
         _vJoy.AcquireVJD(CurrentVJoyId);

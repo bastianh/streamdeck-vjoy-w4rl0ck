@@ -1,15 +1,30 @@
 function sendFromPlugin(payload) {
-    console.log("got payload", payload)
-    window.payload = payload;
-
+    console.log("sendFromPlugin payload", payload)
     document.getElementById("status").innerHTML = `Device #${payload.device}: (${payload.status})`
 }
 
-function setup_autohider() {
+function setup_elements() {
 
-    let controlElements = document.querySelectorAll('[data-visible]')
+    for (const element of document.querySelectorAll('[data-setting]')) {
+        switch(element.nodeName) {
+            case "INPUT":
+            case "SELECT":
+                switch(element.type) {
+                    case "text":
+                    case "select-one":   
+                        element.addEventListener("input", setSettings);
+                        break;
+                    default:
+                        console.warn("Unknown element.type", element.type, element)
+                }
+                break;
+            default:
+                console.warn("Unknown element.nodeName", element.nodeName, element)
 
-    for (const controlElement of controlElements) {
+        }
+    } 
+    
+    for (const controlElement of document.querySelectorAll('[data-visible]')) {
         const hideElement = document.getElementById(controlElement.getAttribute("data-visible"));
         hideElement.style.display = controlElement.checked ? "block" : "none";
         document.addEventListener('configurationLoaded', function () {
@@ -30,7 +45,7 @@ document.addEventListener('websocketCreate', function () {
             sendFromPlugin(payload)
         }
     });
-    setup_autohider();
+    setup_elements();
 });
 
 

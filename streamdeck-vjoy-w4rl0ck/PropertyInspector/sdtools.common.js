@@ -29,7 +29,7 @@ function showElementsByClassName(className) {
 function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, inActionInfo) {
     uuid = inUUID;
     registerEventName = inRegisterEvent;
-    // console.log("cESDS", inUUID, inActionInfo);
+    console.log("connectElgatoStreamDeckSocket", inUUID, inActionInfo);
     actionInfo = JSON.parse(inActionInfo); // cache the info
     inInfo = JSON.parse(inInfo);
     websocket = new WebSocket('ws://127.0.0.1:' + inPort);
@@ -40,8 +40,7 @@ function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, 
     websocket.onmessage = websocketOnMessage;
 
     // Allow others to get notified that the websocket is created
-    var event = new Event('websocketCreate');
-    document.dispatchEvent(event);
+    document.dispatchEvent(new Event('websocketCreate'));
 
     loadConfiguration(actionInfo.payload.settings);
     initPropertyInspector();
@@ -70,12 +69,27 @@ function websocketOnMessage(evt) {
 
     if (jsonObj.event === 'didReceiveSettings') {
         var payload = jsonObj.payload;
+        console.log('didReceiveSettings')
         loadConfiguration(payload.settings);
     }
 }
 
 function loadConfiguration(payload) {
     // console.log('loadConfiguration', payload);
+    for (const element of document.querySelectorAll('[data-setting]')) {
+        switch(element.nodeName) {
+            case "INPUT":
+            case "SELECT":
+                switch(element.type) {
+                    case "text":
+                    case "select-one":
+                        element.value = payload[element.dataset.setting] ?? element.dataset.default ?? ""; 
+                        delete payload[element.dataset.setting];
+                }
+                break;
+        }
+    }
+    
     for (var key in payload) {
         try {
             var elem = document.getElementById(key);
@@ -116,9 +130,9 @@ function loadConfiguration(payload) {
 }
 
 function originalSetSettings() {
-    var payload = {};
-    var elements = document.getElementsByClassName("sdProperty");
-
+    const payload = {};
+    const elements = document.getElementsByClassName("sdProperty");
+    
     Array.prototype.forEach.call(elements, function (elem) {
         var key = elem.id;
         if (elem.classList.contains("sdCheckbox")) { // Checkbox
@@ -134,16 +148,32 @@ function originalSetSettings() {
                 elemFile.innerText = elem.value;
             }
         } else if (elem.classList.contains("sdList")) { // Dynamic dropdown
-            var valueField = elem.getAttribute("sdValueField");
+            const valueField = elem.getAttribute("sdValueField");
             payload[valueField] = elem.value;
         } else if (elem.classList.contains("sdHTML")) { // HTML element
-            var valueField = elem.getAttribute("sdValueField");
+            const valueField = elem.getAttribute("sdValueField");
             payload[valueField] = elem.innerHTML;
         } else { // Normal value
             payload[key] = elem.value;
         }
         // console.log("Save: " + key + "<=" + payload[key]);
     });
+
+    for (const element of document.querySelectorAll('[data-setting]')) {
+        switch(element.nodeName) {
+            case "INPUT":
+            case "SELECT":
+                switch(element.type) {
+                    case "text":
+                    case "select-one":
+                        payload[element.dataset.setting] = element.value;
+                }
+                break;
+        }
+    }
+
+
+    console.log('originalSetSettings', payload);
     setSettingsToPlugin(payload);
 }
 
@@ -172,6 +202,9 @@ function setSettingsToPlugin(payload) {
             'payload': payload
         };
         websocket.send(JSON.stringify(json));
+
+        console.log("setSettingsToPlugin", payload);
+        
         document.dispatchEvent(new Event('settingsUpdated'));
     }
 }
@@ -185,6 +218,7 @@ function sendPayloadToPlugin(payload) {
             'context': uuid,
             'payload': payload
         };
+        console.log("sendPayloadToPlugin", payload);
         websocket.send(JSON.stringify(json));
     }
 }
@@ -200,6 +234,7 @@ function sendValueToPlugin(value, param) {
                 [param]: value
             }
         };
+        console.log("sendValueToPlugin", value, param);
         websocket.send(JSON.stringify(json));
     }
 }
@@ -266,6 +301,8 @@ function addDynamicStyles(clrs) {
     const clr1 = fadeColor(clr, 100);
     const clr2 = fadeColor(clr, 60);
     const metersActiveColor = fadeColor(clr, -60);
+    
+    console.log("addDynamicStyles", clrs);
 
     node.setAttribute('id', 'sdpi-dynamic-styles');
     node.innerHTML = `
