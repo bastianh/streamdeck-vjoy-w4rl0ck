@@ -11,7 +11,8 @@ function setup_elements() {
             case "SELECT":
                 switch(element.type) {
                     case "text":
-                    case "select-one":   
+                    case "select-one":
+                    case "checkbox":
                         element.addEventListener("input", setSettings);
                         break;
                     default:

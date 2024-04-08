@@ -85,6 +85,11 @@ function loadConfiguration(payload) {
                     case "select-one":
                         element.value = payload[element.dataset.setting] ?? element.dataset.default ?? ""; 
                         delete payload[element.dataset.setting];
+                        break;
+                    case "checkbox":
+                        element.checked = !!payload[element.dataset.setting] ?? !!element.dataset.default ?? false;
+                        delete payload[element.dataset.setting];
+                        break;
                 }
                 break;
         }
@@ -167,6 +172,9 @@ function originalSetSettings() {
                     case "text":
                     case "select-one":
                         payload[element.dataset.setting] = element.value;
+                        break;
+                    case "checkbox":
+                        payload[element.dataset.setting] = element.checked;
                 }
                 break;
         }

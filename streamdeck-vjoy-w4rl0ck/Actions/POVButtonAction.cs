@@ -49,12 +49,12 @@ public class POVButtonAction : KeypadBase
     public override void KeyPressed(KeyPayload payload)
     {        
         _simpleVJoyInterface.SetPovSwitch(_settings.PovId, _settings.Direction);
-        if (payload.IsInMultiAction) _timer.Start();
+        if (payload.IsInMultiAction && !_settings.Sticky) _timer.Start();
     }
 
     public override void KeyReleased(KeyPayload payload)
     {
-        if (payload.IsInMultiAction) return;
+        if (_settings.Sticky || payload.IsInMultiAction) return;
         _simpleVJoyInterface.SetPovSwitch(_settings.PovId, 0);
     }
     
@@ -94,12 +94,16 @@ public class POVButtonAction : KeypadBase
         [JsonProperty(PropertyName = "direction")]
         public ushort Direction { get; set; }
 
+        [JsonProperty(PropertyName = "sticky")]
+        public bool Sticky { get; set; }
+        
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
                 PovId = 0,
-                Direction = 0
+                Direction = 0,
+                Sticky = false
             };
             return instance;
         }
