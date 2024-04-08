@@ -14,7 +14,8 @@
 - Toggle buttons that trigger a vJoy button until it is pressed again. It can show a different Title/Image while the action is active.
 - Buttons to control a joystick axis... ( up, down, reset to 0 )
 - Axis can be used as slider (0 - 100%) or regular axis initialized with a center (-100% - +100%)
-- Stream Deck+ dial support to control vJoy axis
+- Stream Deck+ dial support to control vJoy axis or to send vjoy button presses when rotated
+- Buttons that can control up to 4 continuous POVs
 
 ### Download
 
