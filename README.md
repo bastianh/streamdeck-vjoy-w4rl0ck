@@ -58,3 +58,4 @@ It should also work with the vJoy version that is suggested by joystick gremlin.
 
 - This plugin includes the [BarRaider's StreamDeck EasyPI](https://github.com/BarRaider/streamdeck-easypi) library
 
+- This plugin uses icons from [svgrepo.com](https://www.svgrepo.com/): [Joystick](https://www.svgrepo.com/svg/344949/joystick) MIT Licensed from the Bootstrap UI collection.

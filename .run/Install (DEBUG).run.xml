@@ -1,11 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Install (DEBUG)" type="ShConfigurationType" activateToolWindowBeforeRun="false" focusToolWindowBeforeRun="true">
-    <option name="SCRIPT_TEXT" value="" />
+    <option name="SCRIPT_TEXT" value="setlocal cd /d %~dp0 cd DEBUG REM *** MAKE SURE THE FOLLOWING VARIABLES ARE CORRECT *** REM (Distribution tool be downloaded from: https://docs.elgato.com/sdk/plugins/packaging ) SET OUTPUT_DIR=&quot;C:\TEMP&quot; SET DISTRIBUTION_TOOL=&quot;C:\Users\dafir\source\repos\DistributionTool.exe&quot; SET STREAM_DECK_FILE=&quot;D:\Program Files\Elgato\StreamDeck\StreamDeck.exe&quot; SET STREAM_DECK_LOAD_TIMEOUT=7 taskkill /f /im streamdeck.exe taskkill /f /im dev.w4rl0ck.streamdeck.vjoy.exe timeout /t 2 del %OUTPUT_DIR%\dev.w4rl0ck.streamdeck.vjoy.streamDeckPlugin %DISTRIBUTION_TOOL% -b -i dev.w4rl0ck.streamdeck.vjoy.sdPlugin -o %OUTPUT_DIR% rmdir %APPDATA%\Elgato\StreamDeck\Plugins\dev.w4rl0ck.streamdeck.vjoy.sdPlugin /s /q START &quot;&quot; %STREAM_DECK_FILE% timeout /t %STREAM_DECK_LOAD_TIMEOUT% %OUTPUT_DIR%\dev.w4rl0ck.streamdeck.vjoy.streamDeckPlugin" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
-    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/streamdeck-vjoy-w4rl0ck/bin/install.bat" />
+    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/install.bat" />
     <option name="SCRIPT_OPTIONS" value="DEBUG dev.w4rl0ck.streamdeck.vjoy" />
-    <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
-    <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="false" />
+    <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$/streamdeck-vjoy-w4rl0ck" />
     <option name="INDEPENDENT_INTERPRETER_PATH" value="false" />
     <option name="INTERPRETER_PATH" value="$PROJECT_DIR$/../../../../../Windows/System32/WindowsPowerShell/v1.0/powershell.exe" />
     <option name="INTERPRETER_OPTIONS" value="" />
