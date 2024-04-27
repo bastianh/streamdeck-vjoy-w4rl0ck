@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>vJoy Global Settings</title>
+    <link href="sdpi.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: transparent;
+        }
+
+        .sdpi-item {
+            max-width: none;
+        }
+
+        .sdpi-heading {
+            margin: 16px 0;
+        }
+
+        .wrap {
+            margin: 8px 80px;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+<div class="sdpi-wrapper">
+    <div class="sdpi-heading">vJoy Settings</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">vjoy Device</div>
+        <select class="sdpi-item-value select" data-setting="vjoy">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+        </select>
+    </div>
+
+    <div class="sdpi-heading">Axis Settings</div>
+    <div class="wrap">
+        <p>
+            Here you can configure for each axis whether it should
+            reset to center or to 0 when it gets resetted.
+        </p>
+    </div>
+
+    <div class="sdpi-item" id="axis0i" type="radio">
+        <div class="sdpi-item-label">Axis X</div>
+        <div class="sdpi-item-value">
+        <span class="sdpi-item-child">
+            <input data-setting="axis0" id="axis0a" name="axis0" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis0a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis0" id="axis0b" name="axis0" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis0b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis1i" type="radio">
+        <div class="sdpi-item-label">Axis X</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis1" id="axis1a" name="axis1" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis1a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis1" id="axis1b" name="axis1" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis1b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis2i" type="radio">
+        <div class="sdpi-item-label">Axis Z</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis2" id="axis2a" name="axis2" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis2a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis2" id="axis2b" name="axis2" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis2b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis3i" type="radio">
+        <div class="sdpi-item-label">Axis Rx</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis3" id="axis3a" name="axis3" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis3a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis3" id="axis3b" name="axis3" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis3b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis4i" type="radio">
+        <div class="sdpi-item-label">Axis Ry</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis4" id="axis4a" name="axis4" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis4a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis4" id="axis4b" name="axis4" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis4b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis5i" type="radio">
+        <div class="sdpi-item-label">Axis Rz</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis5" id="axis5a" name="axis5" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis5a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis5" id="axis5b" name="axis5" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis5b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis6i" type="radio">
+        <div class="sdpi-item-label">Slider 0</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis6" id="axis6a" name="axis6" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis6a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis6" id="axis6b" name="axis6" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis6b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <div class="sdpi-item" id="axis7i" type="radio">
+        <div class="sdpi-item-label">Slider 1</div>
+        <div class="sdpi-item-value ">
+        <span class="sdpi-item-child">
+            <input data-setting="axis7" id="axis7a" name="axis7" type="radio" value="0">
+            <label class="sdpi-item-label" for="axis7a"><span></span>zero</label>
+        </span>
+            <span class="sdpi-item-child">
+            <input data-setting="axis7" id="axis7b" name="axis7" type="radio" value="1">
+            <label class="sdpi-item-label" for="axis7b"><span></span>center</label>
+        </span>
+        </div>
+    </div>
+
+    <script src="js/helper.js"></script>
+    <script src="js/Global.js"></script>
+</div>
+</body>
+</html>

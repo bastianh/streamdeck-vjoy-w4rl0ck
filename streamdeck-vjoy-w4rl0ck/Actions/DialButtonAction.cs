@@ -16,7 +16,6 @@ public class DialButtonAction : EncoderBase
     {
         Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear += Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
 
         _timer.AutoReset = true;
@@ -39,18 +38,11 @@ public class DialButtonAction : EncoderBase
     {
         Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
         _timer.Stop();
         _timer.Dispose();
     }
-
-    private void Connection_OnSendToPlugin(object sender, SDEventReceivedEventArgs<SendToPlugin> e)
-    {
-        var action = e.Event.Payload["action"]?.ToString();
-        if (action == "showconfig") Configuration.ShowConfiguration();
-    }
-
+    
     public override void DialRotate(DialRotatePayload payload)
     {
         // _simpleVJoyInterface.MoveAxis(_settings.Axis, payload.Ticks * _settings.Sensitivity / 100.0);if (_cwButtonId > 0 && payload.Ticks > 0)

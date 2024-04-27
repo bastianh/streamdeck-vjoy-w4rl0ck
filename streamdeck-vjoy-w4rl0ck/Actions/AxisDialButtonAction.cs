@@ -15,7 +15,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     {
         Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear += Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
         SimpleVJoyInterface.AxisSignal += SimpleVJoyInterface_OnAxisSignal;
 
@@ -45,19 +44,12 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     {
         Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
         SimpleVJoyInterface.AxisSignal -= SimpleVJoyInterface_OnAxisSignal;
         _timer.Stop();
         _timer.Dispose();
     }
-
-    private void Connection_OnSendToPlugin(object sender, SDEventReceivedEventArgs<SendToPlugin> e)
-    {
-        var action = e.Event.Payload["action"]?.ToString();
-        if (action == "showconfig") Configuration.ShowConfiguration();
-    }
-
+    
     private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
     {
         if (axis != _settings.Axis) return;

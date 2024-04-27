@@ -18,7 +18,7 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">POV</div>
-        <select class="sdpi-item-value select" data-setting="pov" data-default="0">
+        <select class="sdpi-item-value select" data-default="0" data-setting="pov">
             <option value="0">1</option>
             <option value="1">2</option>
             <option value="2">3</option>
@@ -28,7 +28,7 @@
 
     <div class="sdpi-item">
         <div class="sdpi-item-label">Direction</div>
-        <select class="sdpi-item-value select" data-setting="direction" data-default="0">
+        <select class="sdpi-item-value select" data-default="0" data-setting="direction">
             <option value="0">Center</option>
             <option value="1">Top</option>
             <option value="2">Top Right</option>
@@ -43,7 +43,7 @@
 
     <div class="sdpi-item" type="checkbox">
         <div class="sdpi-item-label">Sticky</div>
-        <input class="sdpi-item-value" id="sticky_check" data-setting="sticky" type="checkbox">
+        <input class="sdpi-item-value" data-setting="sticky" id="sticky_check" type="checkbox">
         <label for="sticky_check"><span></span>Do not return to center automatically</label>
     </div>
 
@@ -55,11 +55,8 @@
     </div>
 
     <div class="sdpi-item">
-        <button class="sdpi-item-value" id="config_button" onclick="sendPayloadToPlugin({'action':'showconfig'})">Open
-            Configuration
-        </button>
+        <button class="sdpi-item-value" data-open="Global.html">Open Configuration</button>
     </div>
-
 </div>
 </body>
 </html>

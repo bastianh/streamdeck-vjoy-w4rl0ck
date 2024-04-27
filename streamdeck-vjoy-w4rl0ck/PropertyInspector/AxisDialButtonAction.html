@@ -53,7 +53,8 @@
     <div class="sdpi-item sdShowTooltip" id="range_with_meters" type="range">
         <div class="sdpi-item-label">Sensivity</div>
         <div class="sdpi-item-value">
-            <input class="sdProperty" data-suffix=" %" id="sensitivity" max="500" min="50" oninput="setSettings()" step="10"
+            <input class="sdProperty" data-suffix=" %" id="sensitivity" max="500" min="50" oninput="setSettings()"
+                   step="10"
                    type="range"
                    value=100>
             <label class="rangeLabel" for="sensitivity"></label>
@@ -105,7 +106,8 @@
         <div class="sdpi-item" type="checkbox">
             <div class="sdpi-item-label">vJoy Button</div>
             <div class="sdpi-item-value">
-                <input class="sdProperty sdCheckbox" data-visible="touch_detail" id="touch_action" oninput="setSettings()"
+                <input class="sdProperty sdCheckbox" data-visible="touch_detail" id="touch_action"
+                       oninput="setSettings()"
                        type="checkbox">
                 <label for="touch_action"><span></span></label>
             </div>
@@ -133,9 +135,7 @@
     </div>
 
     <div class="sdpi-item">
-        <button class="sdpi-item-value" id="config_button" onclick="sendPayloadToPlugin({'action':'showconfig'})">Open
-            Configuration
-        </button>
+        <button class="sdpi-item-value" data-open="Global.html">Open Configuration</button>
     </div>
 </div>
 </body>

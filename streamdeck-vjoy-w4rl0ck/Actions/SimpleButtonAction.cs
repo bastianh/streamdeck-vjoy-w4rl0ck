@@ -14,7 +14,6 @@ public class SimpleButtonAction : KeypadBase
     {
         Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear += Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin += Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
 
         _timer.AutoReset = false;
@@ -30,18 +29,12 @@ public class SimpleButtonAction : KeypadBase
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
     }
-
-    private void Connection_OnSendToPlugin(object sender, SDEventReceivedEventArgs<SendToPlugin> e)
-    {
-        var action = e.Event.Payload["action"]?.ToString();
-        if (action == "showconfig") Configuration.ShowConfiguration();
-    }
+    
 
     public override void Dispose()
     {
         Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
         _timer.Stop();
         _timer.Dispose();

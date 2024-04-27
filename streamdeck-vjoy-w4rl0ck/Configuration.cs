@@ -72,14 +72,7 @@ public sealed class Configuration : IDisposable
         ConfigurationUpdated();
     }
 
-    public static void ShowConfiguration()
-    {
-        var configForm = new ConfigForm.ConfigForm();
-        configForm.ShowDialog();
-        SimpleVJoyInterface.Instance.SendStatusUpdateSignal();
-    }
-
-    public void SetGlobalSettings()
+    private void SetGlobalSettings()
     {
         GlobalSettingsManager.Instance.SetGlobalSettings(JObject.FromObject(GlobalSettings));
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Configuration SAVED '{GlobalSettings.VJoyDeviceId}'");

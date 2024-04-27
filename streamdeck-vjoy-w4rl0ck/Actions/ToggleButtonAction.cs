@@ -13,7 +13,6 @@ public class ToggleButtonAction : KeypadBase
     {
         Connection.OnPropertyInspectorDidAppear += Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear += Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin += Connection_OnSendToPlugin;
 
         SimpleVJoyInterface.UpdateButtonSignal += SimpleVJoyInterface_OnUpdateButtonSignal;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
@@ -33,17 +32,10 @@ public class ToggleButtonAction : KeypadBase
     {
         Connection.OnPropertyInspectorDidAppear -= Connection_OnPropertyInspectorDidAppear;
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
-        Connection.OnSendToPlugin -= Connection_OnSendToPlugin;
 
         SimpleVJoyInterface.UpdateButtonSignal -= SimpleVJoyInterface_OnUpdateButtonSignal;
     }
-
-    private void Connection_OnSendToPlugin(object sender, SDEventReceivedEventArgs<SendToPlugin> e)
-    {
-        var action = e.Event.Payload["action"]?.ToString();
-        if (action == "showconfig") Configuration.ShowConfiguration();
-    }
-
+    
     private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
     {
         if (buttonId != _settings.ButtonId) return;
