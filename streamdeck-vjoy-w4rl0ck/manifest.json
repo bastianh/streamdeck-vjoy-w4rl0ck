@@ -108,7 +108,7 @@
   "Description": "The StreamDeck vJoy Controller Plugin is a powerful tool that transforms your StreamDeck into a flexible vJoy controller. This plugin allows users to map StreamDeck buttons to vJoy virtual joystick inputs, enhancing the interactivity and control within any software that supports joystick inputs.",
   "Icon": "Images/joystick-svgrepo-com",
   "URL": "https://github.com/bastianh/streamdeck-vjoy-w4rl0ck",
-  "Version": "0.2.0",
+  "Version": "0.2.1",
   "CodePath": "streamdeck-vjoy-w4rl0ck",
   "Category": "vJoy",
   "CategoryIcon": "Images/joystick-svgrepo-com",

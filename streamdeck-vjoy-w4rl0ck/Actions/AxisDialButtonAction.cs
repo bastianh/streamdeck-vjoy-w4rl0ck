@@ -122,7 +122,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         {
             _touchButtonIsDown = true;
             _timer.Start();
-            SimpleVJoyInterface.Instance.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Down);
+            SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Down);
         }
     }
 
