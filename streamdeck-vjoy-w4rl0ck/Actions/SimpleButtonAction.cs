@@ -3,6 +3,7 @@ using BarRaider.SdTools.Events;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using streamdeck_vjoy_w4rl0ck.Utils;
 using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
@@ -28,8 +29,15 @@ public class SimpleButtonAction : KeypadBase
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
+
+        SetButtonImage();
     }
-    
+
+    private void SetButtonImage()
+    {
+        if (_settings != null) Connection.SetImageAsync(SvgGenerator.CreateButtonSvgBase64(_settings.ButtonId));
+    }
+
 
     public override void Dispose()
     {
@@ -67,7 +75,18 @@ public class SimpleButtonAction : KeypadBase
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
-        Tools.AutoPopulateSettings(_settings, payload.Settings);
+        var oldId = _settings.ButtonId;
+        try
+        {
+            Tools.AutoPopulateSettings(_settings, payload.Settings);
+        }
+        catch (FormatException e)
+        {
+            Logger.Instance.LogMessage(TracingLevel.ERROR, $"Key config error: '{e.Message}'");
+            Connection.ShowAlert();
+        }
+
+        if (oldId != _settings.ButtonId) SetButtonImage();
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)

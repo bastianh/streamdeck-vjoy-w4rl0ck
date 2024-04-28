@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace streamdeck_vjoy_w4rl0ck;
+namespace streamdeck_vjoy_w4rl0ck.Utils;
 
 public class VJoyDeviceListEntry
 {

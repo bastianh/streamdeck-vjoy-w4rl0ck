@@ -6,7 +6,7 @@
       "Name": "Button",
       "States": [
         {
-          "Image": "Images/simple",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -21,7 +21,7 @@
       "Name": "POV",
       "States": [
         {
-          "Image": "Images/simple",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -36,12 +36,12 @@
       "Name": "Toggle Button",
       "States": [
         {
-          "Image": "Images/inactive",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         },
         {
-          "Image": "Images/active",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -57,7 +57,7 @@
       "Name": "Axis",
       "States": [
         {
-          "Image": "Images/simple",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -83,7 +83,7 @@
       "Name": "Dial (Buttons)",
       "States": [
         {
-          "Image": "Images/simple",
+          "Image": "Images/button",
           "TitleAlignment": "middle",
           "FontSize": "12"
         }
@@ -108,7 +108,7 @@
   "Description": "The StreamDeck vJoy Controller Plugin is a powerful tool that transforms your StreamDeck into a flexible vJoy controller. This plugin allows users to map StreamDeck buttons to vJoy virtual joystick inputs, enhancing the interactivity and control within any software that supports joystick inputs.",
   "Icon": "Images/joystick-svgrepo-com",
   "URL": "https://github.com/bastianh/streamdeck-vjoy-w4rl0ck",
-  "Version": "0.1.8",
+  "Version": "0.2.0",
   "CodePath": "streamdeck-vjoy-w4rl0ck",
   "Category": "vJoy",
   "CategoryIcon": "Images/joystick-svgrepo-com",

@@ -4,6 +4,7 @@ using BarRaider.SdTools.Payloads;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using streamdeck_vjoy_w4rl0ck.Utils;
 using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
@@ -49,7 +50,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         _timer.Stop();
         _timer.Dispose();
     }
-    
+
     private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
     {
         if (axis != _settings.Axis) return;

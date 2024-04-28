@@ -1,10 +1,10 @@
-using System.Globalization;
 using BarRaider.SdTools;
 using BarRaider.SdTools.Events;
 using BarRaider.SdTools.Payloads;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using streamdeck_vjoy_w4rl0ck.Utils;
 using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
@@ -42,11 +42,11 @@ public class DialButtonAction : EncoderBase
         _timer.Stop();
         _timer.Dispose();
     }
-    
+
     public override void DialRotate(DialRotatePayload payload)
     {
         // _simpleVJoyInterface.MoveAxis(_settings.Axis, payload.Ticks * _settings.Sensitivity / 100.0);if (_cwButtonId > 0 && payload.Ticks > 0)
-        ushort buttonToAdd = payload.Ticks > 0 ? _cwButtonId : _ccwButtonId;
+        var buttonToAdd = payload.Ticks > 0 ? _cwButtonId : _ccwButtonId;
         QueueButton(buttonToAdd, Math.Abs(payload.Ticks));
     }
 
@@ -74,19 +74,16 @@ public class DialButtonAction : EncoderBase
         // Logger.Instance.LogMessage(TracingLevel.INFO,$"Queueing {count} * button {buttonId}");
         if (count == 0 || buttonId == 0) return;
 
-        for (var i = 0; i < count; i++)
-        {
-            _buttonQueue.Add(buttonId);
-        }
+        for (var i = 0; i < count; i++) _buttonQueue.Add(buttonId);
 
         if (_timer.Enabled) return;
         // Logger.Instance.LogMessage(TracingLevel.DEBUG, "timer on");
         TimerTick();
         _timer.Start();
     }
-    
+
     private void TimerTick()
-    {           
+    {
         if (_currentlyActiveButtonId == 0)
         {
             if (_buttonQueue.Count > 0)
@@ -128,7 +125,7 @@ public class DialButtonAction : EncoderBase
 
         [JsonProperty(PropertyName = "ccw_button_id")]
         public string CcwButtonId { get; set; }
-        
+
         [JsonProperty(PropertyName = "dial_button_id")]
         public string DialButtonId { get; set; }
 
@@ -204,7 +201,7 @@ public class DialButtonAction : EncoderBase
     private ushort _dialButtonId;
     private ushort _cwButtonId;
     private ushort _ccwButtonId;
-    private ushort _currentlyActiveButtonId = 0;
+    private ushort _currentlyActiveButtonId;
     private readonly List<ushort> _buttonQueue = [];
 
     #endregion

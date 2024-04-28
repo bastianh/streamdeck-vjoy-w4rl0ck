@@ -3,6 +3,7 @@ using BarRaider.SdTools.Events;
 using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using streamdeck_vjoy_w4rl0ck.Utils;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
@@ -26,6 +27,8 @@ public class ToggleButtonAction : KeypadBase
         {
             _settings = payload.Settings.ToObject<PluginSettings>();
         }
+
+        SetButtonImage();
     }
 
     public override void Dispose()
@@ -35,7 +38,7 @@ public class ToggleButtonAction : KeypadBase
 
         SimpleVJoyInterface.UpdateButtonSignal -= SimpleVJoyInterface_OnUpdateButtonSignal;
     }
-    
+
     private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
     {
         if (buttonId != _settings.ButtonId) return;
@@ -57,9 +60,29 @@ public class ToggleButtonAction : KeypadBase
     {
     }
 
+    private void SetButtonImage()
+    {
+        if (_settings != null)
+        {
+            Connection.SetImageAsync(SvgGenerator.CreateButtonSvgBase64(_settings.ButtonId));
+            Connection.SetImageAsync(SvgGenerator.CreateButtonSvgBase64(_settings.ButtonId, true), 1);
+        }
+    }
+
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
-        Tools.AutoPopulateSettings(_settings, payload.Settings);
+        var oldId = _settings.ButtonId;
+        try
+        {
+            Tools.AutoPopulateSettings(_settings, payload.Settings);
+        }
+        catch (FormatException e)
+        {
+            Logger.Instance.LogMessage(TracingLevel.ERROR, $"Key config error: '{e.Message}'");
+            Connection.ShowAlert();
+        }
+
+        if (oldId != _settings.ButtonId) SetButtonImage();
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)

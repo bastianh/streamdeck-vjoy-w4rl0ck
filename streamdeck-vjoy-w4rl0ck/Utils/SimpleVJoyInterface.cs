@@ -1,7 +1,7 @@
 using BarRaider.SdTools;
 using vJoyInterfaceWrap;
 
-namespace streamdeck_vjoy_w4rl0ck;
+namespace streamdeck_vjoy_w4rl0ck.Utils;
 
 public delegate void ButtonSignalHandler(uint button, bool active);
 
@@ -128,6 +128,7 @@ public sealed class SimpleVJoyInterface
             case 3:
                 return ref _iReport.bHatsEx3;
         }
+
         return ref _iReport.bHats;
     }
 
@@ -136,19 +137,90 @@ public sealed class SimpleVJoyInterface
         switch (direction)
         {
             case 1:
-                default:
-                    return 0xFFFFFFFF;
+            default:
+                return 0xFFFFFFFF;
         }
     }
-    
+
     public void SetPovSwitch(ushort pov, uint direction)
     {
         ref var povRef = ref GetPovReference(pov);
         if (direction == 0) povRef = 0xFFFFFFFF;
-        else povRef = (direction-1) * 4500;
+        else povRef = (direction - 1) * 4500;
         UpdateVJoy();
     }
-    
+
+    private void ResetAxisAndPovs()
+    {
+        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
+        {
+            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
+            ref var axisRef = ref GetAxisReference(index);
+            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
+            else axisRef = 0;
+        }
+
+        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
+    }
+
+    public void ConnectToVJoy(uint id)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
+            if (CurrentVJoyId > 0) DisconnectFromVJoy();
+            if (!_vJoy.vJoyEnabled())
+            {
+                ChangeStatus(VJoyStatus.Deactivated);
+                return;
+            }
+
+            if (!_vJoy.isVJDExists(id))
+            {
+                ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
+                return;
+            }
+
+            if (!_vJoy.AcquireVJD(id))
+            {
+                ChangeStatus(VJoyStatus.VJoyDeviceBusy);
+                return;
+            }
+
+            CurrentVJoyId = id;
+            _vJoy.ResetVJD(id);
+            _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
+            Logger.Instance.LogMessage(TracingLevel.DEBUG,
+                $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
+            if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
+            {
+                Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
+                _maxAxisValue = 32767;
+            }
+
+            ResetAxisAndPovs();
+            UpdateVJoy();
+            ChangeStatus(VJoyStatus.Connected);
+        }
+    }
+
+    private bool UpdateVJoy()
+    {
+        _iReport.bDevice = (byte)CurrentVJoyId;
+        if (_vJoy.UpdateVJD(CurrentVJoyId, ref _iReport))
+            return true;
+        _vJoy.AcquireVJD(CurrentVJoyId);
+        return false;
+    }
+
+    private void DisconnectFromVJoy()
+    {
+        if (CurrentVJoyId == 0) return;
+        _vJoy.RelinquishVJD(CurrentVJoyId);
+        ChangeStatus(VJoyStatus.Disconnected);
+        CurrentVJoyId = 0;
+    }
+
     #region Axis
 
     public float GetCurrentAxisValue(ushort axis)
@@ -201,11 +273,11 @@ public sealed class SimpleVJoyInterface
 
         if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
     }
-    
+
     #endregion
-    
+
     #region Buttons
-    
+
     public void ButtonState(uint button, ButtonAction action)
     {
         var buttonId = button - 1;
@@ -254,76 +326,6 @@ public sealed class SimpleVJoyInterface
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
     }
-    
+
     #endregion
-
-    private void ResetAxisAndPovs()
-    {
-        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
-        {
-            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
-            ref var axisRef = ref GetAxisReference(index);
-            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
-            else axisRef = 0;
-        }
-        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
-    }
-    
-    public void ConnectToVJoy(uint id)
-    {
-        lock (SingletonLockObject) // Ensure thread safety
-        {
-            if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
-            if (CurrentVJoyId > 0) DisconnectFromVJoy();
-            if (!_vJoy.vJoyEnabled())
-            {
-                ChangeStatus(VJoyStatus.Deactivated);
-                return;
-            }
-
-            if (!_vJoy.isVJDExists(id))
-            {
-                ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
-                return;
-            }
-
-            if (!_vJoy.AcquireVJD(id))
-            {
-                ChangeStatus(VJoyStatus.VJoyDeviceBusy);
-                return;
-            }
-
-            CurrentVJoyId = id;
-            _vJoy.ResetVJD(id);
-            _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
-            Logger.Instance.LogMessage(TracingLevel.DEBUG,
-                $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
-            if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
-                _maxAxisValue = 32767;
-            }
-
-            ResetAxisAndPovs();
-            UpdateVJoy();
-            ChangeStatus(VJoyStatus.Connected);
-        }
-    }
-    
-    private bool UpdateVJoy()
-    {
-        _iReport.bDevice = (byte)CurrentVJoyId;
-        if (_vJoy.UpdateVJD(CurrentVJoyId, ref _iReport))
-            return true;
-        _vJoy.AcquireVJD(CurrentVJoyId);
-        return false;
-    }
-
-    private void DisconnectFromVJoy()
-    {
-        if (CurrentVJoyId == 0) return;
-        _vJoy.RelinquishVJD(CurrentVJoyId);
-        ChangeStatus(VJoyStatus.Disconnected);
-        CurrentVJoyId = 0;
-    }
 }

@@ -2,7 +2,7 @@ using BarRaider.SdTools;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace streamdeck_vjoy_w4rl0ck;
+namespace streamdeck_vjoy_w4rl0ck.Utils;
 
 public class GlobalSettings
 {
