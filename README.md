@@ -46,6 +46,8 @@ The toggle button activates the vjoy button when pressed. The vjoy button stays 
 If there is a simple button controlling the same vjoy button it will also update the state when the simple button is pressed.
 In MultiActions the state is toggled as usual.
 
+The toggle button now also supports long-press now to trigger a different button id. :new:
+
 #### Axis 
 
 The Axis action can be used in the Steam Deck as buttons or in the Steam Deck+ as a dial.

@@ -114,6 +114,9 @@
         <None Update="PropertyInspector\TriggerButtonAction.html">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="PropertyInspector\ToggleButtonAction.html">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>

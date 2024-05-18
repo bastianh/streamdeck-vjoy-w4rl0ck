@@ -4,6 +4,7 @@ using BarRaider.SdTools.Wrappers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using streamdeck_vjoy_w4rl0ck.Utils;
+using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
@@ -17,6 +18,11 @@ public class ToggleButtonAction : KeypadBase
 
         SimpleVJoyInterface.UpdateButtonSignal += SimpleVJoyInterface_OnUpdateButtonSignal;
         SimpleVJoyInterface.VJoyStatusUpdateSignal += SimpleVJoyInterface_OnVJoyStatusUpdate;
+
+        _longPressTimer.AutoReset = false;
+        _longPressTimer.Elapsed += (sender, e) => LongPressTimerTick();
+        _buttonTimer.AutoReset = false;
+        _buttonTimer.Elapsed += (sender, e) => ButtonTimerTick();
 
         if (payload.Settings == null || payload.Settings.Count == 0)
         {
@@ -48,13 +54,33 @@ public class ToggleButtonAction : KeypadBase
 
     public override void KeyPressed(KeyPayload payload)
     {
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Toggle);
+        if (_settings.LongPressButtonId != null && _settings.LongPressButtonId > 0) _longPressTimer.Start();
     }
 
     public override void KeyReleased(KeyPayload payload)
     {
+        if (!_longPressTimer.Enabled) return;
+        _longPressTimer.Stop();
+        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Toggle);
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
     }
+
+    private void LongPressTimerTick()
+    {
+        if (_settings.LongPressButtonId == null) return;
+        SimpleVJoyInterface.Instance.ButtonState((uint)_settings.LongPressButtonId,
+            SimpleVJoyInterface.ButtonAction.Down);
+        _buttonTimer.Start();
+        Connection.ShowOk();
+    }
+
+    private void ButtonTimerTick()
+    {
+        if (_settings.LongPressButtonId != null)
+            SimpleVJoyInterface.Instance.ButtonState((uint)_settings.LongPressButtonId,
+                SimpleVJoyInterface.ButtonAction.Up);
+    }
+
 
     public override void OnTick()
     {
@@ -103,11 +129,15 @@ public class ToggleButtonAction : KeypadBase
         [JsonProperty(PropertyName = "buttonId")]
         public uint ButtonId { get; set; }
 
+        [JsonProperty(PropertyName = "lpButtonId")]
+        public uint? LongPressButtonId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
-                ButtonId = 1
+                ButtonId = 1,
+                LongPressButtonId = 0
             };
             return instance;
         }
@@ -144,6 +174,8 @@ public class ToggleButtonAction : KeypadBase
     #region Private Members
 
     private readonly PluginSettings _settings;
+    private readonly Timer _buttonTimer = new(100);
+    private readonly Timer _longPressTimer = new(600);
     private bool _buttonState;
     private bool _propertyInspectorIsOpen;
 

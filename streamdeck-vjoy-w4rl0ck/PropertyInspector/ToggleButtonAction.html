@@ -15,20 +15,19 @@
 <div class="sdpi-wrapper">
 
     <div class="sdpi-heading">vJoy Settings</div>
-
     <div class="sdpi-item">
-        <div class="sdpi-item-label">Button ID 1</div>
-        <input class="sdpi-item-value" data-default="1" data-setting="buttonId1" pattern="\d{1,3}" placeholder="1-128"
+        <div class="sdpi-item-label">Toggle Button ID</div>
+        <input class="sdpi-item-value" data-default="1" data-setting="buttonId" pattern="\d{1,3}" placeholder="1-128"
                required>
     </div>
 
     <div class="sdpi-item">
-        <div class="sdpi-item-label">Button ID 2</div>
-        <input class="sdpi-item-value" data-default="2" data-setting="buttonId2" pattern="\d{1,3}" placeholder="1-128"
-               required>
+        <div class="sdpi-item-label">Long Press ID</div>
+        <input class="sdpi-item-value" data-default="" data-setting="lpButtonId" pattern="\d{0,3}" placeholder="1-128">
     </div>
 
-    <div class="sdpi-heading">Global Settings</div>
+    <div class=" sdpi-heading">Global Settings
+    </div>
     <div class="sdpi-item">
         <details class="message info">
             <summary>Status: <span id="status"></span></summary>
@@ -38,6 +37,7 @@
     <div class="sdpi-item">
         <button class="sdpi-item-value" data-open="Global.html">Open Configuration</button>
     </div>
+
 </div>
 </body>
 </html>
