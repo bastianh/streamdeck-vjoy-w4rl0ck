@@ -16,6 +16,27 @@
       "PropertyInspectorPath": "PropertyInspector/SimpleButtonAction.html"
     },
     {
+      "UUID": "dev.w4rl0ck.streamdeck.vjoy.triggerbutton",
+      "Icon": "Images/joystick-svgrepo-com",
+      "Name": "State Button",
+      "States": [
+        {
+          "Image": "Images/button",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        },
+        {
+          "Image": "Images/button",
+          "TitleAlignment": "middle",
+          "FontSize": "12"
+        }
+      ],
+      "SupportedInMultiActions": false,
+      "DisableAutomaticStates": true,
+      "Tooltip": "A multistate button that triggers different vJoy buttons",
+      "PropertyInspectorPath": "PropertyInspector/TriggerButtonAction.html"
+    },
+    {
       "UUID": "dev.w4rl0ck.streamdeck.vjoy.povbutton",
       "Icon": "Images/joystick-svgrepo-com",
       "Name": "POV",
@@ -108,7 +129,7 @@
   "Description": "The StreamDeck vJoy Controller Plugin is a powerful tool that transforms your StreamDeck into a flexible vJoy controller. This plugin allows users to map StreamDeck buttons to vJoy virtual joystick inputs, enhancing the interactivity and control within any software that supports joystick inputs.",
   "Icon": "Images/joystick-svgrepo-com",
   "URL": "https://github.com/bastianh/streamdeck-vjoy-w4rl0ck",
-  "Version": "0.2.1",
+  "Version": "0.2.2",
   "CodePath": "streamdeck-vjoy-w4rl0ck",
   "Category": "vJoy",
   "CategoryIcon": "Images/joystick-svgrepo-com",

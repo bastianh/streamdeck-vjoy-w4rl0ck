@@ -36,6 +36,10 @@ Downloads available in the [releases](https://github.com/bastianh/streamdeck-vjo
 A simple button is connected to a vJoy button and activates the button als long as it is pressed.
 If used in a MultiAction the button is active for 100ms.
 
+#### State Button :new:
+
+A toggle button that uses 2 different button ids to switch between states. A long press sends the current state button id again.
+
 #### Toggle Button 
 
 The toggle button activates the vjoy button when pressed. The vjoy button stays active until it is pressed again. The Action shows a second state while the vjoy button is active.
