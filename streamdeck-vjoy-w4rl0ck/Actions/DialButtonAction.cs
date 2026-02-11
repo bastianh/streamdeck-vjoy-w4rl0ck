@@ -74,7 +74,10 @@ public class DialButtonAction : EncoderBase
         // Logger.Instance.LogMessage(TracingLevel.INFO,$"Queueing {count} * button {buttonId}");
         if (count == 0 || buttonId == 0) return;
 
-        for (var i = 0; i < count; i++) _buttonQueue.Add(buttonId);
+        lock (_queueLock)
+        {
+            for (var i = 0; i < count; i++) _buttonQueue.Add(buttonId);
+        }
 
         if (_timer.Enabled) return;
         // Logger.Instance.LogMessage(TracingLevel.DEBUG, "timer on");
@@ -84,27 +87,30 @@ public class DialButtonAction : EncoderBase
 
     private void TimerTick()
     {
-        if (_currentlyActiveButtonId == 0)
+        lock (_queueLock)
         {
-            if (_buttonQueue.Count > 0)
+            if (_currentlyActiveButtonId == 0)
             {
-                _currentlyActiveButtonId = _buttonQueue[0];
-                _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Down);
-                // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button down {_currentlyActiveButtonId}");
-                _buttonQueue.RemoveAt(0);
+                if (_buttonQueue.Count > 0)
+                {
+                    _currentlyActiveButtonId = _buttonQueue[0];
+                    _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Down);
+                    // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button down {_currentlyActiveButtonId}");
+                    _buttonQueue.RemoveAt(0);
+                }
+                else
+                {
+                    if (!_timer.Enabled) return;
+                    // Logger.Instance.LogMessage(TracingLevel.DEBUG, "timer off");
+                    _timer.Stop();
+                }
             }
             else
             {
-                if (!_timer.Enabled) return;
-                // Logger.Instance.LogMessage(TracingLevel.DEBUG, "timer off");
-                _timer.Stop();
+                _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Up);
+                // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button up {_currentlyActiveButtonId}");
+                _currentlyActiveButtonId = 0;
             }
-        }
-        else
-        {
-            _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Up);
-            // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button up {_currentlyActiveButtonId}");
-            _currentlyActiveButtonId = 0;
         }
     }
 
@@ -203,6 +209,7 @@ public class DialButtonAction : EncoderBase
     private ushort _ccwButtonId;
     private ushort _currentlyActiveButtonId;
     private readonly List<ushort> _buttonQueue = [];
+    private readonly object _queueLock = new();
 
     #endregion
 }

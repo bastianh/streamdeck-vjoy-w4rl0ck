@@ -144,10 +144,13 @@ public sealed class SimpleVJoyInterface
 
     public void SetPovSwitch(ushort pov, uint direction)
     {
-        ref var povRef = ref GetPovReference(pov);
-        if (direction == 0) povRef = 0xFFFFFFFF;
-        else povRef = (direction - 1) * 4500;
-        UpdateVJoy();
+        lock (_updateLockObject)
+        {
+            ref var povRef = ref GetPovReference(pov);
+            if (direction == 0) povRef = 0xFFFFFFFF;
+            else povRef = (direction - 1) * 4500;
+            UpdateVJoy();
+        }
     }
 
     private void ResetAxisAndPovs()
@@ -167,40 +170,43 @@ public sealed class SimpleVJoyInterface
     {
         lock (SingletonLockObject) // Ensure thread safety
         {
-            if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
-            if (CurrentVJoyId > 0) DisconnectFromVJoy();
-            if (!_vJoy.vJoyEnabled())
+            lock (_updateLockObject)
             {
-                ChangeStatus(VJoyStatus.Deactivated);
-                return;
-            }
+                if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
+                if (CurrentVJoyId > 0) DisconnectFromVJoy();
+                if (!_vJoy.vJoyEnabled())
+                {
+                    ChangeStatus(VJoyStatus.Deactivated);
+                    return;
+                }
 
-            if (!_vJoy.isVJDExists(id))
-            {
-                ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
-                return;
-            }
+                if (!_vJoy.isVJDExists(id))
+                {
+                    ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
+                    return;
+                }
 
-            if (!_vJoy.AcquireVJD(id))
-            {
-                ChangeStatus(VJoyStatus.VJoyDeviceBusy);
-                return;
-            }
+                if (!_vJoy.AcquireVJD(id))
+                {
+                    ChangeStatus(VJoyStatus.VJoyDeviceBusy);
+                    return;
+                }
 
-            CurrentVJoyId = id;
-            _vJoy.ResetVJD(id);
-            _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
-            Logger.Instance.LogMessage(TracingLevel.DEBUG,
-                $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
-            if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
-            {
-                Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
-                _maxAxisValue = 32767;
-            }
+                CurrentVJoyId = id;
+                _vJoy.ResetVJD(id);
+                _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
+                Logger.Instance.LogMessage(TracingLevel.DEBUG,
+                    $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
+                if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
+                {
+                    Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
+                    _maxAxisValue = 32767;
+                }
 
-            ResetAxisAndPovs();
-            UpdateVJoy();
-            ChangeStatus(VJoyStatus.Connected);
+                ResetAxisAndPovs();
+                UpdateVJoy();
+                ChangeStatus(VJoyStatus.Connected);
+            }
         }
     }
 
@@ -257,21 +263,27 @@ public sealed class SimpleVJoyInterface
     public void SetAxis(ushort axis, float percent)
     {
         if (_maxAxisValue == 0) return;
-        ref var axisRef = ref GetAxisReference(axis);
-        var value = (int)(_maxAxisValue / 100.0 * percent);
-        axisRef = Math.Clamp(value, 0, (int)_maxAxisValue);
+        lock (_updateLockObject)
+        {
+            ref var axisRef = ref GetAxisReference(axis);
+            var value = (int)(_maxAxisValue / 100.0 * percent);
+            axisRef = Math.Clamp(value, 0, (int)_maxAxisValue);
 
-        if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
+            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
+        }
     }
 
     public void MoveAxis(ushort axis, double percent)
     {
         if (_maxAxisValue == 0) return;
-        ref var axisRef = ref GetAxisReference(axis);
-        var value = (int)(_maxAxisValue / 100.0 * percent);
-        axisRef = Math.Clamp(axisRef + value, 0, (int)_maxAxisValue);
+        lock (_updateLockObject)
+        {
+            ref var axisRef = ref GetAxisReference(axis);
+            var value = (int)(_maxAxisValue / 100.0 * percent);
+            axisRef = Math.Clamp(axisRef + value, 0, (int)_maxAxisValue);
 
-        if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
+            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
+        }
     }
 
     #endregion

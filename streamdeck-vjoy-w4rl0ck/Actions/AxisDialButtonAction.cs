@@ -114,15 +114,15 @@ public class AxisDialButtonAction : KeyAndEncoderBase
             SimpleVJoyInterface.Instance.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Up);
     }
 
-    public override void TouchPress(TouchpadPressPayload payload)
+    public override async void TouchPress(TouchpadPressPayload payload)
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, "TouchScreen Pressed");
         if (_settings.TouchResetAxis) ResetAxis();
         if (_settings.TouchButtonAction)
         {
-            _touchButtonIsDown = true;
-            _timer.Start();
             SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Down);
+            await Task.Delay(100);
+            SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Up);
         }
     }
 
@@ -148,12 +148,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
             case 2:
                 _simpleVJoyInterface.MoveAxis(_settings.Axis, -_settings.Sensitivity / 100.0);
                 break;
-        }
-
-        if (_touchButtonIsDown)
-        {
-            SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Up);
-            _timer.Stop();
         }
 
         if (_settings.ButtonAction == 0) _timer.Stop();
@@ -269,7 +263,6 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private readonly PluginSettings _settings;
     private bool _propertyInspectorIsOpen;
-    private bool _touchButtonIsDown;
     private readonly Timer _timer = new(100);
     private readonly SimpleVJoyInterface _simpleVJoyInterface = SimpleVJoyInterface.Instance;
     private readonly Configuration _configuration = Configuration.Instance;
