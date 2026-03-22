@@ -59,8 +59,12 @@ public class ToggleButtonAction : KeypadBase
 
     public override void KeyReleased(KeyPayload payload)
     {
-        if (!_longPressTimer.Enabled) return;
-        _longPressTimer.Stop();
+        if (_settings.LongPressButtonId != null && _settings.LongPressButtonId > 0)
+        {
+            if (!_longPressTimer.Enabled) return;
+            _longPressTimer.Stop();
+        }
+
         SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Toggle);
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
     }
