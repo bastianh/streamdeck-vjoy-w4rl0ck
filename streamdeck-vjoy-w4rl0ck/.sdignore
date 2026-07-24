@@ -1,0 +1,8 @@
+# Files excluded from the packaged .streamDeckPlugin (streamdeck pack).
+# Debug symbols are not needed at runtime and dominate the package size.
+*.pdb
+
+# This plugin is Windows-only (see manifest OS); non-Windows native libraries
+# are unnecessary and only bloat the package.
+runtimes/osx/
+runtimes/linux/

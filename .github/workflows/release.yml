@@ -31,12 +31,14 @@ jobs:
       - name: Create output directory
         run: |
           mkdir release
-      - name: StreamDeck Distribution Tool
-        uses: AdamCarballo/streamdeck-distribution-tool@v1.0.2
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          input: dev.w4rl0ck.streamdeck.vjoy.sdPlugin
-          output: ../../../release
-          working-directory: streamdeck-vjoy-w4rl0ck\\bin\\Debug
+          node-version: 20
+      - name: Install Stream Deck CLI
+        run: npm install -g @elgato/cli
+      - name: Pack plugin
+        run: streamdeck pack streamdeck-vjoy-w4rl0ck\bin\Debug\dev.w4rl0ck.streamdeck.vjoy.sdPlugin -o release --force --no-update-check
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
