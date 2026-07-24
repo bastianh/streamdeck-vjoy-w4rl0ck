@@ -21,6 +21,11 @@
 
 Downloads available in the [releases](https://github.com/bastianh/streamdeck-vjoy-w4rl0ck/releases) section.
 
+### Requirements
+
+- Windows 10 or newer
+- The [.NET 10 Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) must be installed. If the plugin fails to load after installing, install the runtime and restart the Stream Deck software.
+
 ### Changes
 
 #### 0.2.0

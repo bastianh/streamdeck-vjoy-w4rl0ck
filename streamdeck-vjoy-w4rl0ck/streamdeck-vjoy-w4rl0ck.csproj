@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <RootNamespace>streamdeck_vjoy_w4rl0ck</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
@@ -17,9 +17,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="StreamDeck-Tools" Version="6.2.0"/>
-        <PackageReference Include="Svg" Version="3.4.7"/>
-        <PackageReference Include="System.Drawing.Common" Version="8.0.3"/>
+        <PackageReference Include="StreamDeck-Tools" Version="7.0.0"/>
+        <PackageReference Include="Svg" Version="3.4.8"/>
+        <PackageReference Include="System.Drawing.Common" Version="10.0.10"/>
     </ItemGroup>
 
     <ItemGroup>
