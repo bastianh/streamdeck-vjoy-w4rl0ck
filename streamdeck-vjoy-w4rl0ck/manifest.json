@@ -8,7 +8,7 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "SupportedInMultiActions": true,
@@ -23,12 +23,12 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         },
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "SupportedInMultiActions": false,
@@ -44,7 +44,7 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "SupportedInMultiActions": true,
@@ -59,12 +59,12 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         },
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "DisableAutomaticStates": true,
@@ -80,7 +80,7 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "Controllers": [
@@ -106,7 +106,7 @@
         {
           "Image": "Images/button",
           "TitleAlignment": "middle",
-          "FontSize": "12"
+          "FontSize": 12
         }
       ],
       "Controllers": [
@@ -124,13 +124,14 @@
       "PropertyInspectorPath": "PropertyInspector/DialButtonAction.html"
     }
   ],
+  "UUID": "dev.w4rl0ck.streamdeck.vjoy",
   "Author": "Bastian Hoyer",
   "Name": "vJoy Plugin",
   "Description": "The StreamDeck vJoy Controller Plugin is a powerful tool that transforms your StreamDeck into a flexible vJoy controller. This plugin allows users to map StreamDeck buttons to vJoy virtual joystick inputs, enhancing the interactivity and control within any software that supports joystick inputs.",
   "Icon": "Images/joystick-svgrepo-com",
   "URL": "https://github.com/bastianh/streamdeck-vjoy-w4rl0ck",
   "Version": "0.2.3",
-  "CodePath": "streamdeck-vjoy-w4rl0ck",
+  "CodePath": "streamdeck-vjoy-w4rl0ck.exe",
   "Category": "vJoy",
   "CategoryIcon": "Images/joystick-svgrepo-com",
   "OS": [
