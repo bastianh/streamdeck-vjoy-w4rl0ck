@@ -9,7 +9,7 @@ using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
-[PluginActionId("dev.w4rl0ck.streamdeck.vjoy.axiskeydialaction")]
+[PluginActionId(ActionIds.AxisDial)]
 public class AxisDialButtonAction : KeyAndEncoderBase
 {
     public AxisDialButtonAction(SDConnection connection, InitialPayload payload) : base(connection, payload)

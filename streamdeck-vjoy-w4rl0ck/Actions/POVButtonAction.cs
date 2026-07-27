@@ -8,7 +8,7 @@ using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
-[PluginActionId("dev.w4rl0ck.streamdeck.vjoy.povbutton")]
+[PluginActionId(ActionIds.PovButton)]
 // ReSharper disable once ClassNeverInstantiated.Global
 public class PovButtonAction : KeypadBase
 {

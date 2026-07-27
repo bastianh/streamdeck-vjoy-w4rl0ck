@@ -9,7 +9,7 @@ using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
-[PluginActionId("dev.w4rl0ck.streamdeck.vjoy.dialbuttonaction")]
+[PluginActionId(ActionIds.DialButton)]
 public class DialButtonAction : EncoderBase
 {
     public DialButtonAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
