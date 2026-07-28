@@ -45,8 +45,9 @@ public class ToggleButtonAction : KeypadBase
         SimpleVJoyInterface.UpdateButtonSignal -= SimpleVJoyInterface_OnUpdateButtonSignal;
     }
 
-    private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
+    private void SimpleVJoyInterface_OnUpdateButtonSignal(uint deviceId, uint buttonId, bool state)
     {
+        if (deviceId != SimpleVJoyInterface.Instance.CurrentVJoyId) return;
         if (buttonId != _settings.ButtonId) return;
         _buttonState = state;
         Connection.SetStateAsync(_buttonState ? 1u : 0u);

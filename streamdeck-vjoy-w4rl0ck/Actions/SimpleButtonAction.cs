@@ -51,7 +51,8 @@ public class SimpleButtonAction : KeypadBase
     public override void KeyPressed(KeyPayload payload)
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed '{payload.IsInMultiAction}'");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Down);
         if (payload.IsInMultiAction) _timer.Start();
     }
 
@@ -59,13 +60,15 @@ public class SimpleButtonAction : KeypadBase
     {
         if (payload.IsInMultiAction) return;
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Released '{payload.IsInMultiAction}'");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Up);
     }
 
     private void TimerTick()
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, "Timer Released");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Up);
         _timer.Stop();
     }
 
@@ -107,11 +110,16 @@ public class SimpleButtonAction : KeypadBase
         [JsonProperty(PropertyName = "buttonId")]
         public uint ButtonId { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
-                ButtonId = 1
+                ButtonId = 1,
+                DeviceId = 0
             };
             return instance;
         }

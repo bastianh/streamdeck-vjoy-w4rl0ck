@@ -41,7 +41,9 @@ vJoy.
     `sendToPropertyInspector` payload (`payload.device`, `payload.status`) and
     forwards every websocket message to the child `Global.html` window.
   - `PropertyInspector/js/Global.js` only handles `didReceiveGlobalSettings`.
-  - `UpdateButtonSignal` is declared and invoked but has **no subscribers**.
+  - ~~`UpdateButtonSignal` is declared and invoked but has **no subscribers**.~~
+    Wrong, found in Step 4: `ToggleButtonAction` subscribes to it and filters on
+    the button id alone, which stops being enough once two devices are in play.
 - `GlobalSettings.AxisConfiguration` (reset-to-zero vs reset-to-center per axis)
   stays **global**, shared by all devices. Making it per-device is not part of
   this plan.
@@ -176,8 +178,24 @@ vJoy.
   from Step 2, but no action Property Inspector loads that file yet, so each one
   needs a `<script src="js/helper.js">` tag added. This is the walking skeleton:
   after this step two keys can drive two different vJoy devices at the same time.
+- **Done with three deviations:** `PropertyInspector/js/helper.js` cannot be
+  loaded by an action Property Inspector at all — it declares `const debounce`,
+  which `sdtools.common.js` already declares, and a redeclaration kills the
+  whole script; the two device-selector helpers therefore moved to a new
+  `PropertyInspector/js/devices.js` that both `Global.html` and the action
+  Property Inspectors load. `UpdateButtonSignal` gained the device id and
+  `ToggleButtonAction` now filters on it, because the assumption that the signal
+  has no subscribers was wrong and a Simple Button on device 2 would otherwise
+  flip the state icon of a Toggle Button on the default device sharing its
+  button id. And the default device is now acquired on demand as well, since the
+  two-argument `ButtonState` routes through `GetOrAcquireDevice`: a key whose
+  device was busy at startup starts working as soon as it is free, without a
+  plugin restart.
 - **Files:** `Utils/SimpleVJoyInterface.cs`, `Actions/SimpleButtonAction.cs`,
-  `PropertyInspector/SimpleButtonAction.html`
+  `Actions/ToggleButtonAction.cs`, `PropertyInspector/SimpleButtonAction.html`,
+  `PropertyInspector/js/devices.js` (new), `PropertyInspector/js/helper.js`,
+  `PropertyInspector/Global.html`, `PropertyInspector/local.js`,
+  `streamdeck-vjoy-w4rl0ck.csproj`
 - **Verify:** Build. Configure key A as Simple Button → device 1 button 1, key B
   → device 2 button 1. In vJoy Monitor with both devices open, pressing A lights
   only device 1 and pressing B only device 2; holding both shows both lit. An

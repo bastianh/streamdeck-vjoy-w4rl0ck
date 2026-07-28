@@ -3,7 +3,7 @@ using vJoyInterfaceWrap;
 
 namespace streamdeck_vjoy_w4rl0ck.Utils;
 
-public delegate void ButtonSignalHandler(uint button, bool active);
+public delegate void ButtonSignalHandler(uint device, uint button, bool active);
 
 public delegate void AxisSignalHandler(uint axis, float value);
 
@@ -38,8 +38,8 @@ public sealed class SimpleVJoyInterface
     private SimpleVJoyInterface()
     {
         _vJoy = new vJoy();
-        ChangeStatus(VJoyStatus.Initialized);
-        if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated);
+        ChangeStatus(VJoyStatus.Initialized, 0);
+        if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated, 0);
         _configuration = Configuration.Instance;
     }
 
@@ -102,12 +102,17 @@ public sealed class SimpleVJoyInterface
         }
     }
 
-    private void ChangeStatus(VJoyStatus status)
+    private void ChangeStatus(VJoyStatus status, uint deviceId)
     {
         _interfaceStatus = status;
-        var level = GetTracingLevelForStatus(status);
-        Logger.Instance.LogMessage(level, $"vJoy device '{CurrentVJoyId}' status is now '{status}'");
+        LogDeviceStatus(deviceId, status);
         SendStatusUpdateSignal();
+    }
+
+    private void LogDeviceStatus(uint deviceId, VJoyStatus status)
+    {
+        var level = GetTracingLevelForStatus(status);
+        Logger.Instance.LogMessage(level, $"vJoy device '{deviceId}' status is now '{status}'");
     }
 
     public void SendStatusUpdateSignal()
@@ -127,22 +132,58 @@ public sealed class SimpleVJoyInterface
             var currentDevice = CurrentDevice;
             if (currentDevice != null && currentDevice.Id == id && currentDevice.IsOwned) return;
             if (currentDevice != null) DisconnectFromVJoy();
-            if (!_vJoy.vJoyEnabled())
-            {
-                ChangeStatus(VJoyStatus.Deactivated);
-                return;
-            }
 
-            var device = new VJoyDevice(_vJoy, _configuration, id);
-            var status = device.Acquire();
-            if (status == VJoyStatus.Connected)
-            {
-                _devices[id] = device;
-                CurrentVJoyId = id;
-            }
-
-            ChangeStatus(status);
+            var status = AcquireDevice(id, out var device);
+            if (device != null) CurrentVJoyId = id;
+            ChangeStatus(status, id);
         }
+    }
+
+    /// <summary>
+    ///     The device a key drives: the one it selected, or the configured default
+    ///     for id 0. Acquired on first use; null when it cannot be acquired.
+    /// </summary>
+    public VJoyDevice GetOrAcquireDevice(uint id)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            var deviceId = id > 0 ? id : _configuration.GlobalSettings.VJoyDeviceId;
+            if (_devices.TryGetValue(deviceId, out var device))
+            {
+                if (device.IsOwned) return device;
+                _devices.Remove(deviceId); // lost to another process
+            }
+
+            var status = AcquireDevice(deviceId, out device);
+            // A key can be the first to reach the default device, when that device
+            // was still busy elsewhere at the time the global settings arrived.
+            if (deviceId == _configuration.GlobalSettings.VJoyDeviceId)
+            {
+                if (device != null) CurrentVJoyId = deviceId;
+                ChangeStatus(status, deviceId);
+            }
+            else
+            {
+                LogDeviceStatus(deviceId, status);
+            }
+
+            return device;
+        }
+    }
+
+    private VJoyStatus AcquireDevice(uint id, out VJoyDevice device)
+    {
+        device = null;
+        if (id == 0) return VJoyStatus.VJoyDeviceNotExistent;
+        if (!_vJoy.vJoyEnabled()) return VJoyStatus.Deactivated;
+
+        var acquired = new VJoyDevice(_vJoy, _configuration, id);
+        var status = acquired.Acquire();
+        if (status != VJoyStatus.Connected) return status;
+
+        _devices[id] = acquired;
+        device = acquired;
+        return status;
     }
 
     private void DisconnectFromVJoy()
@@ -151,7 +192,7 @@ public sealed class SimpleVJoyInterface
         if (device == null) return;
         device.Relinquish();
         _devices.Remove(device.Id);
-        ChangeStatus(VJoyStatus.Disconnected);
+        ChangeStatus(VJoyStatus.Disconnected, device.Id);
         CurrentVJoyId = 0;
     }
 
@@ -182,9 +223,15 @@ public sealed class SimpleVJoyInterface
 
     public void ButtonState(uint button, ButtonAction action)
     {
-        var device = CurrentDevice;
+        ButtonState(0, button, action);
+    }
+
+    public void ButtonState(uint deviceId, uint button, ButtonAction action)
+    {
+        var device = GetOrAcquireDevice(deviceId);
         if (device == null) return;
-        if (device.ButtonState(button, action, out var newState)) UpdateButtonSignal?.Invoke(button, newState);
+        if (device.ButtonState(button, action, out var newState))
+            UpdateButtonSignal?.Invoke(device.Id, button, newState);
     }
 
     #endregion
