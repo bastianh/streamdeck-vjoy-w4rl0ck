@@ -31,22 +31,22 @@ public sealed class SimpleVJoyInterface
     private static SimpleVJoyInterface _instance;
     private static readonly object SingletonLockObject = new();
     private readonly Configuration _configuration;
-    private readonly object _updateLockObject = new();
+    private readonly Dictionary<uint, VJoyDevice> _devices = new();
     private readonly vJoy _vJoy;
-    private vJoy.JoystickState _iReport;
-    private long _maxAxisValue;
+    private VJoyStatus _interfaceStatus;
 
     private SimpleVJoyInterface()
     {
         _vJoy = new vJoy();
-        _iReport = new vJoy.JoystickState();
         ChangeStatus(VJoyStatus.Initialized);
         if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated);
         _configuration = Configuration.Instance;
     }
 
     public uint CurrentVJoyId { get; private set; }
-    public VJoyStatus Status { get; private set; }
+    public VJoyStatus Status => CurrentDevice?.Status ?? _interfaceStatus;
+
+    private VJoyDevice CurrentDevice => _devices.GetValueOrDefault(CurrentVJoyId);
 
     #region Singleton
 
@@ -104,7 +104,7 @@ public sealed class SimpleVJoyInterface
 
     private void ChangeStatus(VJoyStatus status)
     {
-        Status = status;
+        _interfaceStatus = status;
         var level = GetTracingLevelForStatus(status);
         Logger.Instance.LogMessage(level, $"vJoy device '{CurrentVJoyId}' status is now '{status}'");
         SendStatusUpdateSignal();
@@ -115,114 +115,42 @@ public sealed class SimpleVJoyInterface
         VJoyStatusUpdateSignal?.Invoke();
     }
 
-    private ref uint GetPovReference(ushort pov)
-    {
-        switch (pov)
-        {
-            case 0:
-                return ref _iReport.bHats;
-            case 1:
-                return ref _iReport.bHatsEx1;
-            case 2:
-                return ref _iReport.bHatsEx2;
-            case 3:
-                return ref _iReport.bHatsEx3;
-        }
-
-        return ref _iReport.bHats;
-    }
-
-    private uint GetPovDirection(ushort direction)
-    {
-        switch (direction)
-        {
-            case 1:
-            default:
-                return 0xFFFFFFFF;
-        }
-    }
-
     public void SetPovSwitch(ushort pov, uint direction)
     {
-        lock (_updateLockObject)
-        {
-            ref var povRef = ref GetPovReference(pov);
-            if (direction == 0) povRef = 0xFFFFFFFF;
-            else povRef = (direction - 1) * 4500;
-            UpdateVJoy();
-        }
-    }
-
-    private void ResetAxisAndPovs()
-    {
-        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
-        {
-            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
-            ref var axisRef = ref GetAxisReference(index);
-            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
-            else axisRef = 0;
-        }
-
-        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
+        CurrentDevice?.SetPovSwitch(pov, direction);
     }
 
     public void ConnectToVJoy(uint id)
     {
         lock (SingletonLockObject) // Ensure thread safety
         {
-            lock (_updateLockObject)
+            var currentDevice = CurrentDevice;
+            if (currentDevice != null && currentDevice.Id == id && currentDevice.IsOwned) return;
+            if (currentDevice != null) DisconnectFromVJoy();
+            if (!_vJoy.vJoyEnabled())
             {
-                if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
-                if (CurrentVJoyId > 0) DisconnectFromVJoy();
-                if (!_vJoy.vJoyEnabled())
-                {
-                    ChangeStatus(VJoyStatus.Deactivated);
-                    return;
-                }
-
-                if (!_vJoy.isVJDExists(id))
-                {
-                    ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
-                    return;
-                }
-
-                if (!_vJoy.AcquireVJD(id))
-                {
-                    ChangeStatus(VJoyStatus.VJoyDeviceBusy);
-                    return;
-                }
-
-                CurrentVJoyId = id;
-                _vJoy.ResetVJD(id);
-                _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
-                Logger.Instance.LogMessage(TracingLevel.DEBUG,
-                    $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
-                if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
-                    _maxAxisValue = 32767;
-                }
-
-                ResetAxisAndPovs();
-                UpdateVJoy();
-                ChangeStatus(VJoyStatus.Connected);
+                ChangeStatus(VJoyStatus.Deactivated);
+                return;
             }
-        }
-    }
 
-    private bool UpdateVJoy()
-    {
-        _iReport.bDevice = (byte)CurrentVJoyId;
-        if (_vJoy.UpdateVJD(CurrentVJoyId, ref _iReport))
-            return true;
-        _vJoy.AcquireVJD(CurrentVJoyId);
-        return false;
+            var device = new VJoyDevice(_vJoy, _configuration, id);
+            var status = device.Acquire();
+            if (status == VJoyStatus.Connected)
+            {
+                _devices[id] = device;
+                CurrentVJoyId = id;
+            }
+
+            ChangeStatus(status);
+        }
     }
 
     private void DisconnectFromVJoy()
     {
-        if (CurrentVJoyId == 0) return;
-        _vJoy.RelinquishVJD(CurrentVJoyId);
+        var device = CurrentDevice;
+        if (device == null) return;
+        device.Relinquish();
+        _devices.Remove(device.Id);
         ChangeStatus(VJoyStatus.Disconnected);
         CurrentVJoyId = 0;
     }
@@ -231,59 +159,21 @@ public sealed class SimpleVJoyInterface
 
     public float GetCurrentAxisValue(ushort axis)
     {
-        ref var axisRef = ref GetAxisReference(axis);
-        return (float)axisRef / _maxAxisValue;
-    }
-
-    private ref int GetAxisReference(ushort axis)
-    {
-        switch (axis)
-        {
-            case 0:
-                return ref _iReport.AxisX;
-            case 1:
-                return ref _iReport.AxisY;
-            case 2:
-                return ref _iReport.AxisZ;
-            case 3:
-                return ref _iReport.AxisXRot;
-            case 4:
-                return ref _iReport.AxisYRot;
-            case 5:
-                return ref _iReport.AxisZRot;
-            case 6:
-                return ref _iReport.Slider;
-            case 7:
-                return ref _iReport.Dial;
-        }
-
-        return ref _iReport.AxisX;
+        return CurrentDevice?.GetCurrentAxisValue(axis) ?? 0;
     }
 
     public void SetAxis(ushort axis, float percent)
     {
-        if (_maxAxisValue == 0) return;
-        lock (_updateLockObject)
-        {
-            ref var axisRef = ref GetAxisReference(axis);
-            var value = (int)(_maxAxisValue / 100.0 * percent);
-            axisRef = Math.Clamp(value, 0, (int)_maxAxisValue);
-
-            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
-        }
+        var device = CurrentDevice;
+        if (device == null) return;
+        if (device.SetAxis(axis, percent, out var value)) AxisSignal?.Invoke(axis, value);
     }
 
     public void MoveAxis(ushort axis, double percent)
     {
-        if (_maxAxisValue == 0) return;
-        lock (_updateLockObject)
-        {
-            ref var axisRef = ref GetAxisReference(axis);
-            var value = (int)(_maxAxisValue / 100.0 * percent);
-            axisRef = Math.Clamp(axisRef + value, 0, (int)_maxAxisValue);
-
-            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
-        }
+        var device = CurrentDevice;
+        if (device == null) return;
+        if (device.MoveAxis(axis, percent, out var value)) AxisSignal?.Invoke(axis, value);
     }
 
     #endregion
@@ -292,51 +182,9 @@ public sealed class SimpleVJoyInterface
 
     public void ButtonState(uint button, ButtonAction action)
     {
-        var buttonId = button - 1;
-        var arrayIndex = buttonId / 32;
-        var bitPosition = buttonId % 32;
-        var newState = false;
-
-
-        lock (_updateLockObject)
-        {
-            switch (arrayIndex)
-            {
-                case 0: // For 1-32 buttons
-                    newState = SetButtonState(ref _iReport.Buttons, bitPosition, action);
-                    break;
-                case 1: // For 33-64 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx1, bitPosition, action);
-                    break;
-                case 2: // For 65-96 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx2, bitPosition, action);
-                    break;
-                case 3: // For 97-128 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx3, bitPosition, action);
-                    break;
-            }
-
-            if (UpdateVJoy()) UpdateButtonSignal?.Invoke(button, newState);
-        }
-    }
-
-
-    private bool SetButtonState(ref uint buttons, uint bitPosition, ButtonAction action)
-    {
-        switch (action)
-        {
-            case ButtonAction.Toggle:
-                buttons ^= 1U << (int)bitPosition;
-                return (buttons & (1u << (int)bitPosition)) != 0;
-            case ButtonAction.Down:
-                buttons |= 1u << (int)bitPosition;
-                return true;
-            case ButtonAction.Up:
-                buttons &= ~(1u << (int)bitPosition);
-                return false;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(action), action, null);
-        }
+        var device = CurrentDevice;
+        if (device == null) return;
+        if (device.ButtonState(button, action, out var newState)) UpdateButtonSignal?.Invoke(button, newState);
     }
 
     #endregion

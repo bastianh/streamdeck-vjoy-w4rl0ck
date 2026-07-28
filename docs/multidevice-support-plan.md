@@ -145,6 +145,16 @@ vJoy.
   compile untouched. Pure structural change, no behaviour change — the
   unavoidable scaffolding step, kept as narrow as possible and with zero public
   API movement.
+- **Done with three deviations:** the state-mutating operations moved along with
+  the state they mutate — `SetPovSwitch`, `SetAxis`, `MoveAxis`, `ButtonState`
+  and `GetCurrentAxisValue` now live on `VJoyDevice`, which keeps the `ref`
+  accessors and the update lock private to itself, while
+  `SimpleVJoyInterface` keeps the identical public signatures, routes to the
+  current device and raises `AxisSignal` / `UpdateButtonSignal` from the result;
+  `Status` falls back to an interface-level field for the states that belong to
+  no device (`Initialized`, `Deactivated`, `Disconnected`); and with no device
+  acquired those calls are now no-ops instead of writing a report to device `0`
+  and re-acquiring it.
 - **Files:** `Utils/VJoyDevice.cs` (new), `Utils/SimpleVJoyInterface.cs`
 - **Verify:** Build. Then, on a profile with one of each keypad action: simple
   button, toggle button and state button still register presses in vJoy Monitor;
