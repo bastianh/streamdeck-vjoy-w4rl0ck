@@ -1,9 +1,22 @@
 let childWindows = [];
+let lastPluginPayload = null;
 
 function sendFromPlugin(payload) {
   console.log("sendFromPlugin payload", payload);
+  lastPluginPayload = payload;
   document.getElementById("status").innerHTML =
     `Device #${payload.device}: (${payload.status})`;
+}
+
+// A child window opens long after the plugin pushed its data, so it asks for a
+// replay once its own message handler is in place.
+function requestPluginData() {
+  if (lastPluginPayload === null) return;
+  const message = {
+    event: "sendToPropertyInspector",
+    payload: lastPluginPayload,
+  };
+  childWindows.forEach((child) => child.postMessage(message, "*"));
 }
 
 function setup_elements() {

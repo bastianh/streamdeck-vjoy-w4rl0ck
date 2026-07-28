@@ -56,7 +56,9 @@ vJoy.
   across processes*, not *one device per process*. The existing brief
   (`docs/multidevice-device-suffix-problem.md`) asserts this but nothing in this
   repository has ever exercised it. → **Resolved by Step 1**, which is nothing
-  but that check, before any production code changes.
+  but that check, before any production code changes. Measured on 2026-07-28 and
+  confirmed: one process holds several devices, `UpdateVJD` routes by its `rID`
+  argument alone, and per-device state is independent.
 - **`ref`-returning accessors constrain the shape of the per-device state.**
   `GetAxisReference` / `GetPovReference` return `ref` into `_iReport`. Per-device
   state must therefore live in a **class**, not a struct held in a dictionary, or
@@ -73,14 +75,14 @@ vJoy.
 - **Property Inspector option lists are populated after settings are loaded.**
   `loadConfiguration` (EasyPI) applies saved settings on websocket open; the
   device list arrives later via `sendToPropertyInspector`. A device `<select>`
-  built from that later payload will lose the saved selection unless `local.js`
-  remembers it and reapplies. → Addressed in Step 2 (Global.html) and Step 4
-  (action PIs); the helper is written once and reused.
-- **Encoder actions cannot be verified on the dev machine.** The attached device
-  is a Stream Deck Classic 3×5; `AxisDialButtonAction` and `DialButtonAction`
-  (Steps 8-10) need a Stream Deck + for a real check. Their verification is
-  build + keypad-path check locally, and a full check by the human on target
-  hardware.
+  built from that later payload will lose the saved selection unless the
+  Property Inspector remembers it and reapplies. → Addressed in Step 2
+  (Global.html) and Step 4 (action PIs); the helper is written once, in
+  `PropertyInspector/js/helper.js`, and reused.
+- **Encoder actions need a human at the hardware.** The dev machine has a
+  Stream Deck + XL (4×9, 6 encoders) alongside a Stream Deck Classic 3×5, so
+  `AxisDialButtonAction` and `DialButtonAction` (Steps 8-10) can be checked here
+  — but only by the human turning a dial, not by any check Claude can run.
 
 ## Steps
 
@@ -113,9 +115,18 @@ vJoy.
   the device `<select>` from the payload and reapplies the saved value. Delivers
   real value on its own: devices 7..16 become selectable, and nonexistent devices
   stop being offered.
+- **Done with three deviations:** the rebuild helper lives in
+  `PropertyInspector/js/helper.js`, not in `local.js`, because `Global.html`
+  loads the former and never the latter; `local.js` caches the last plugin
+  payload and exposes `requestPluginData()`, since the child window opens after
+  the plugin's only push and would otherwise stay empty until a vJoy status
+  change that may never come; and a saved device vJoy no longer reports is kept
+  as an option of its own instead of being dropped, so the setting does not look
+  silently reset.
 - **Files:** `Utils/SimpleVJoyInterface.cs`, `Utils/VJoyDeviceListEntry.cs`,
   `Utils/Configuration.cs`, `PropertyInspector/Global.html`,
-  `PropertyInspector/js/Global.js`
+  `PropertyInspector/js/Global.js`, `PropertyInspector/js/helper.js`,
+  `PropertyInspector/local.js`
 - **Verify:** Build, restart the plugin, open any key → `Open Configuration`. The
   device dropdown lists exactly the devices configured in vJoy Configurator
   (add/remove one and reopen to confirm), and the previously saved device is
@@ -151,11 +162,12 @@ vJoy.
   `SimpleButtonAction` gains a `device` setting (default `0`) and its Property
   Inspector gains a device `<select>` whose options are built from the `devices`
   payload added in Step 2, with a `Default` entry at value `0`. The
-  build-and-reapply helper goes into `PropertyInspector/local.js` so later steps
-  reuse it. This is the walking skeleton: after this step two keys can drive two
-  different vJoy devices at the same time.
+  build-and-reapply helper already exists in `PropertyInspector/js/helper.js`
+  from Step 2, but no action Property Inspector loads that file yet, so each one
+  needs a `<script src="js/helper.js">` tag added. This is the walking skeleton:
+  after this step two keys can drive two different vJoy devices at the same time.
 - **Files:** `Utils/SimpleVJoyInterface.cs`, `Actions/SimpleButtonAction.cs`,
-  `PropertyInspector/SimpleButtonAction.html`, `PropertyInspector/local.js`
+  `PropertyInspector/SimpleButtonAction.html`
 - **Verify:** Build. Configure key A as Simple Button → device 1 button 1, key B
   → device 2 button 1. In vJoy Monitor with both devices open, pressing A lights
   only device 1 and pressing B only device 2; holding both shows both lit. An
@@ -216,9 +228,9 @@ vJoy.
   clockwise and counter-clockwise button ids all target the key's device.
 - **Files:** `Actions/DialButtonAction.cs`,
   `PropertyInspector/DialButtonAction.html`
-- **Verify:** Build; keypad-path regression check that nothing else broke. Full
-  check needs a Stream Deck +: rotating and pressing the dial drives the selected
-  device only.
+- **Verify:** Build; keypad-path regression check that nothing else broke. On the
+  Stream Deck + XL, rotating and pressing the dial drives the selected device
+  only.
 - **Commit:** `vjoy: add per-key device selection to the dial button`
 
 ### Step 9: Route POV output through the selected device
@@ -247,7 +259,7 @@ vJoy.
 - **Verify:** Build. Two Axis keys on the same axis but different devices: moving
   one changes only its device's axis in vJoy Monitor, and each key's title
   percentage tracks its own device rather than both jumping together. Encoder
-  behaviour needs the human on a Stream Deck +.
+  behaviour needs the human at the Stream Deck + XL.
 - **Commit:** `vjoy: route axis output and feedback through the key's device`
 
 ### Step 11: Report an unusable device on the key instead of failing silently

@@ -85,6 +85,7 @@ public sealed class Configuration : IDisposable
         {
             ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
             ["status"] = SimpleVJoyInterface.Instance.Status.ToString(),
+            ["devices"] = JArray.FromObject(SimpleVJoyInterface.Instance.ConfiguredDevices()),
             ["global"] = JObject.FromObject(GlobalSettings)
         };
         return data;

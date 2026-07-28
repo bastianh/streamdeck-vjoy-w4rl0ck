@@ -68,9 +68,9 @@ public sealed class SimpleVJoyInterface
     public static event VJoyStatusUpdateHandler VJoyStatusUpdateSignal;
 
 
-    public List<uint> ConfiguredDevices()
+    public List<VJoyDeviceListEntry> ConfiguredDevices()
     {
-        var result = new List<uint>();
+        var result = new List<VJoyDeviceListEntry>();
 
         for (uint i = 1; i <= 16; i++)
         {
@@ -80,7 +80,7 @@ public sealed class SimpleVJoyInterface
                 case VjdStat.VJD_STAT_OWN:
                 case VjdStat.VJD_STAT_FREE:
                 case VjdStat.VJD_STAT_BUSY:
-                    result.Add(i);
+                    result.Add(new VJoyDeviceListEntry(i, status));
                     break;
                 default:
                     continue;
