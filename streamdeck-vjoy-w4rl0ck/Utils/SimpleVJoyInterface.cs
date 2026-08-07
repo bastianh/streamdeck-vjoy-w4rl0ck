@@ -140,6 +140,15 @@ public sealed class SimpleVJoyInterface
     }
 
     /// <summary>
+    ///     The device id a key setting points at, without acquiring anything:
+    ///     the one it selected, or the configured default for id 0.
+    /// </summary>
+    public uint ResolveDeviceId(uint id)
+    {
+        return id > 0 ? id : _configuration.GlobalSettings.VJoyDeviceId;
+    }
+
+    /// <summary>
     ///     The device a key drives: the one it selected, or the configured default
     ///     for id 0. Acquired on first use; null when it cannot be acquired.
     /// </summary>
@@ -147,7 +156,7 @@ public sealed class SimpleVJoyInterface
     {
         lock (SingletonLockObject) // Ensure thread safety
         {
-            var deviceId = id > 0 ? id : _configuration.GlobalSettings.VJoyDeviceId;
+            var deviceId = ResolveDeviceId(id);
             if (_devices.TryGetValue(deviceId, out var device))
             {
                 if (device.IsOwned) return device;
@@ -220,6 +229,20 @@ public sealed class SimpleVJoyInterface
     #endregion
 
     #region Buttons
+
+    /// <summary>
+    ///     Whether the key's device currently reports that button as pressed.
+    ///     False when the device is not held, since nothing of ours is down on a
+    ///     device we do not own — releasing one resets it.
+    /// </summary>
+    public bool GetButtonState(uint deviceId, uint button)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            var device = _devices.GetValueOrDefault(ResolveDeviceId(deviceId));
+            return device != null && device.IsOwned && device.GetButtonState(button);
+        }
+    }
 
     public void ButtonState(uint button, ButtonAction action)
     {

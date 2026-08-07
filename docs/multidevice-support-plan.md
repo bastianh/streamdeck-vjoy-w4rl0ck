@@ -263,7 +263,24 @@ vJoy.
   plus the device `<select>` in its Property Inspector. Its long-press button
   uses the same device as the short press — one device per key, not per button
   id, since a key that straddles two devices has no sensible state icon.
-- **Files:** `Actions/ToggleButtonAction.cs`,
+- **Done with two additions:** the button signal filter that Step 4 gave this
+  action compared against `CurrentVJoyId`, which was only right while every key
+  used the default device. `SimpleVJoyInterface.ResolveDeviceId` was added for
+  it — the resolution `GetOrAcquireDevice` already did, without the acquiring —
+  so a key now syncs its state icon from its own device only.
+
+  The state icon also had to stop being a cache. Resetting a device — on
+  release, and on acquisition — clears its buttons without going through
+  `ButtonState`, so no signal is raised and the key kept showing a button that
+  was no longer pressed. A key set to the default device could not have been
+  rescued by a signal anyway: by the time the old device is released, the global
+  setting already names the new one, so the release would arrive from a device
+  the key no longer recognises as its own. `GetButtonState(deviceId, button)`
+  now reads the device, and the key re-derives its image whenever it learns its
+  settings and on every vJoy status change. The state was never the key's to
+  remember: two keys can address one button, and the second one to be configured
+  started at "off" while the button was already down.
+- **Files:** `Utils/SimpleVJoyInterface.cs`, `Actions/ToggleButtonAction.cs`,
   `PropertyInspector/ToggleButtonAction.html`
 - **Verify:** Build. A Toggle Button key set to device 2 latches and unlatches
   its button on device 2 in vJoy Monitor, device 1 untouched; long press still

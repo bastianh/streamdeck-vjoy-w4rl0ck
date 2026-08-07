@@ -204,6 +204,30 @@ public sealed class VJoyDevice
 
     #region Buttons
 
+    public bool GetButtonState(uint button)
+    {
+        var buttonId = button - 1;
+        var arrayIndex = buttonId / 32;
+        var mask = 1u << (int)(buttonId % 32);
+
+        lock (_updateLockObject)
+        {
+            switch (arrayIndex)
+            {
+                case 0:
+                    return (_iReport.Buttons & mask) != 0;
+                case 1:
+                    return (_iReport.ButtonsEx1 & mask) != 0;
+                case 2:
+                    return (_iReport.ButtonsEx2 & mask) != 0;
+                case 3:
+                    return (_iReport.ButtonsEx3 & mask) != 0;
+            }
+
+            return false;
+        }
+    }
+
     public bool ButtonState(uint button, ButtonAction action, out bool newState)
     {
         var buttonId = button - 1;
