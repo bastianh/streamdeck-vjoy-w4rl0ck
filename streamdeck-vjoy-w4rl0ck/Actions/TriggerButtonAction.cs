@@ -65,21 +65,24 @@ public class TriggerButtonAction : KeypadBase
         _longPressTimer.Stop();
         var newState = payload.State == 0 ? 1u : 0;
         _currentButtonId = newState == 0 ? _settings.ButtonId1 : _settings.ButtonId2;
-        SimpleVJoyInterface.Instance.ButtonState(_currentButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _currentButtonId,
+            SimpleVJoyInterface.ButtonAction.Down);
         Connection.SetStateAsync(newState);
         _buttonTimer.Start();
     }
 
     private void LongPressTimerTick()
     {
-        SimpleVJoyInterface.Instance.ButtonState(_currentButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _currentButtonId,
+            SimpleVJoyInterface.ButtonAction.Down);
         _buttonTimer.Start();
         Connection.ShowOk();
     }
 
     private void ButtonTimerTick()
     {
-        SimpleVJoyInterface.Instance.ButtonState(_currentButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _currentButtonId,
+            SimpleVJoyInterface.ButtonAction.Up);
     }
 
     public override void OnTick()
@@ -125,12 +128,17 @@ public class TriggerButtonAction : KeypadBase
         [JsonProperty(PropertyName = "buttonId2")]
         public uint ButtonId2 { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
                 ButtonId1 = 1,
-                ButtonId2 = 2
+                ButtonId2 = 2,
+                DeviceId = 0
             };
             return instance;
         }

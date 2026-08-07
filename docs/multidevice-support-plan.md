@@ -294,6 +294,9 @@ vJoy.
   states, two button ids, long press). Both button ids go to the key's device,
   for the same reason as Step 6. Separate from Step 6 because it is a separate
   file with its own state handling and `DisableAutomaticStates` logic.
+- **Done as planned.** Needed none of Step 6's state work: this action's two
+  states select which button id to fire next, and both fire as 100 ms pulses
+  that are never held, so there is no device state for the image to drift from.
 - **Files:** `Actions/TriggerButtonAction.cs`,
   `PropertyInspector/TriggerButtonAction.html`
 - **Verify:** Build. A State Button key set to device 2 alternates its two button
@@ -364,6 +367,13 @@ vJoy.
   global device setting now means (the default for keys that do not choose one),
   and refresh the action tooltips in `manifest.json` accordingly. Needed before
   this goes upstream as a PR.
+
+  Also document what the State Button's two states mean, which reading its code
+  does not make obvious: the image shows the button that is currently in effect,
+  a short press sends the **other** one and switches to it, and a long press
+  re-sends the one on the image without switching. So a key showing 11 sends 22
+  when tapped and 11 when held. Deliberately left as it is (2026-08-07):
+  changing either half would silently alter what existing profiles send.
 - **Files:** `README.md`, `manifest.json`
 - **Verify:** Build; the tooltips render as expected when hovering the actions in
   the Stream Deck action list. Read the README top to bottom for statements that
