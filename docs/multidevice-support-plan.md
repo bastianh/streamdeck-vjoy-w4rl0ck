@@ -308,6 +308,9 @@ vJoy.
 
 - **Change:** The same change for `DialButtonAction` (encoder-only): dial press,
   clockwise and counter-clockwise button ids all target the key's device.
+- **Done as planned**, for all four button ids: the plan named three and forgot
+  the touch display press. The selector sits in a `vJoy Device` section of its
+  own, after the four, since it applies to all of them.
 - **Files:** `Actions/DialButtonAction.cs`,
   `PropertyInspector/DialButtonAction.html`
 - **Verify:** Build; keypad-path regression check that nothing else broke. On the

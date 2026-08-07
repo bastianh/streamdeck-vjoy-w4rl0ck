@@ -9,6 +9,7 @@
     <title>vJoy Settings</title>
     <link href="sdpi.css" rel="stylesheet">
     <script src="sdtools.common.js"></script>
+    <script src="js/devices.js"></script>
     <script src="local.js"></script>
 </head>
 <body>
@@ -60,6 +61,20 @@
     <div class="sdpi-item">
         <details class="message info">
             <summary>The button is pressed for 50ms</summary>
+        </details>
+    </div>
+
+    <div class="sdpi-heading">vJoy Device</div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Device</div>
+        <select class="sdpi-item-value select" data-default="0" data-setting="device">
+            <option value="0">Default</option>
+        </select>
+    </div>
+    <div class="sdpi-item">
+        <details class="message info">
+            <summary>All four buttons of this dial go to this device</summary>
         </details>
     </div>
 
