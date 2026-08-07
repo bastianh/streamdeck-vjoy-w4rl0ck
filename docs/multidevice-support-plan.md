@@ -214,13 +214,47 @@ vJoy.
   path actually turned out to be. Scheduled here, immediately after the first
   step that can hold more than one device, because a latched button across
   several devices is this plugin's worst failure mode.
-- **Files:** `Utils/SimpleVJoyInterface.cs`, `Utils/VJoyDevice.cs`,
-  `Program.cs`
-- **Verify:** Hold a key that presses a button on device 2, and while it is held
-  run `streamdeck stop dev.w4rl0ck.streamdeck.vjoy`. In vJoy Monitor the button
-  goes up and device 2 is released, rather than staying lit. Repeat with two
-  devices held simultaneously.
-- **Commit:** `vjoy: release and reset every acquired device on shutdown`
+- **Done, and the shutdown half of it is not achievable.** Measured on
+  2026-08-06, Stream Deck 7.5.0.22885 with StreamDeck-Tools 7.0.0, by writing a
+  file directly from each candidate hook and then running
+  `streamdeck stop`:
+  - code after `SDWrapper.Run(args)` — never reached, `Run` does not return;
+  - `AppDomain.CurrentDomain.ProcessExit` — does not fire;
+  - an action's `Dispose()` — does not fire, with three live instances on the
+    profile (verified by a probe in the constructor, which does fire);
+  - `PluginBase.Destroy()` — `sealed override` in `KeypadBase` / `EncoderBase`,
+    so a plugin cannot override it at all.
+
+  Stream Deck kills the process. The probe instrument itself was validated by a
+  write at startup, which lands every time.
+
+  Worse, the operating system does **not** clean up on the plugin's behalf.
+  After the owning process is killed, the device becomes `VJD_STAT_FREE`
+  immediately, but its report is left untouched: a button held at kill time was
+  still reported as pressed by `joyGetPosEx` — the same view a game gets — for
+  the whole 61 s the measurement ran. It clears only when something acquires
+  that device again and resets it, which is what `VJoyDevice.Acquire` does. So a
+  button stuck this way survives until the plugin restarts and takes the device
+  back: at startup for the default device, at the first key press for a device
+  acquired on demand.
+
+  What the step does deliver: `Release` resets buttons, axes and POVs and pushes
+  a final report before relinquishing, on the one teardown path that is
+  reachable — a device dropped from the acquired set when the default device
+  changes. `ReleaseAllDevices` and the `ProcessExit` hook were written and then
+  dropped again: with no reachable caller they were dead code, and `Program.cs`
+  is untouched by this step.
+- **Files:** `Utils/SimpleVJoyInterface.cs`, `Utils/VJoyDevice.cs`
+- **Verify:** ~~Hold a key that presses a button on device 2, and while it is
+  held run `streamdeck stop dev.w4rl0ck.streamdeck.vjoy`.~~ That scenario cannot
+  pass — see the measurement above — and is not a check. Instead: hold a key
+  whose device is the current default and, without letting go, select a
+  different default in `Open Configuration`. In vJoy Monitor the button on the
+  old device goes up and its axes return to neutral, instead of staying lit with
+  no owner. Confirmed 2026-08-06, together with two effects that follow from
+  acquisition resetting a device: the new default is cleared as well, so a key
+  holding a button there loses it too, and a key on neither device is untouched.
+- **Commit:** `vjoy: reset a device before handing it back to vJoy`
 
 ### Step 6: Add per-key device selection to Toggle Button
 

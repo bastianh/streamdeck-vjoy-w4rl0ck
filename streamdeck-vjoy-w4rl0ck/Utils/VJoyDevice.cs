@@ -53,10 +53,18 @@ public sealed class VJoyDevice
         }
     }
 
-    public void Relinquish()
+    /// <summary>
+    ///     Returns the device to neutral and hands it back to vJoy. Anything still
+    ///     held down when the device is given up stays down for whoever reads it
+    ///     next, so the final report is pushed before relinquishing.
+    /// </summary>
+    public void Release()
     {
         lock (_updateLockObject)
         {
+            _iReport.Buttons = _iReport.ButtonsEx1 = _iReport.ButtonsEx2 = _iReport.ButtonsEx3 = 0;
+            ResetAxisAndPovs();
+            Update();
             _vJoy.RelinquishVJD(Id);
             Status = VJoyStatus.Disconnected;
         }

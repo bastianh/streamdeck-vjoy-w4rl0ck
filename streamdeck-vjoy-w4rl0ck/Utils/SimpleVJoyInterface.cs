@@ -190,7 +190,7 @@ public sealed class SimpleVJoyInterface
     {
         var device = CurrentDevice;
         if (device == null) return;
-        device.Relinquish();
+        device.Release();
         _devices.Remove(device.Id);
         ChangeStatus(VJoyStatus.Disconnected, device.Id);
         CurrentVJoyId = 0;
