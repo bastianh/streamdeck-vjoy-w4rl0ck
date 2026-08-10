@@ -323,6 +323,9 @@ vJoy.
 - **Change:** Add `SetPovSwitch(uint deviceId, ushort pov, uint direction)`,
   keeping the existing signature as the default-device overload, and give
   `POVButtonAction` a `device` setting plus its Property Inspector selector.
+- **Done as planned.** The default-device path changed the same way `ButtonState`
+  did in Step 4: it goes through `GetOrAcquireDevice` instead of only writing to
+  an already connected device, so a POV key acquires its device on demand.
 - **Files:** `Utils/SimpleVJoyInterface.cs`, `Actions/POVButtonAction.cs`,
   `PropertyInspector/PovButtonAction.html`
 - **Verify:** Build. A POV key set to device 2 moves the hat on device 2 in vJoy

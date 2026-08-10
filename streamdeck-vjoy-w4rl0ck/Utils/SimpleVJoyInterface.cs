@@ -122,7 +122,12 @@ public sealed class SimpleVJoyInterface
 
     public void SetPovSwitch(ushort pov, uint direction)
     {
-        CurrentDevice?.SetPovSwitch(pov, direction);
+        SetPovSwitch(0, pov, direction);
+    }
+
+    public void SetPovSwitch(uint deviceId, ushort pov, uint direction)
+    {
+        GetOrAcquireDevice(deviceId)?.SetPovSwitch(pov, direction);
     }
 
     public void ConnectToVJoy(uint id)

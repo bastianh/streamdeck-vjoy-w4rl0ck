@@ -43,19 +43,19 @@ public class PovButtonAction : KeypadBase
 
     public override void KeyPressed(KeyPayload payload)
     {
-        _simpleVJoyInterface.SetPovSwitch(_settings.PovId, _settings.Direction);
+        _simpleVJoyInterface.SetPovSwitch(_settings.DeviceId, _settings.PovId, _settings.Direction);
         if (payload.IsInMultiAction && !_settings.Sticky) _timer.Start();
     }
 
     public override void KeyReleased(KeyPayload payload)
     {
         if (_settings.Sticky || payload.IsInMultiAction) return;
-        _simpleVJoyInterface.SetPovSwitch(_settings.PovId, 0);
+        _simpleVJoyInterface.SetPovSwitch(_settings.DeviceId, _settings.PovId, 0);
     }
 
     private void TimerTick()
     {
-        _simpleVJoyInterface.SetPovSwitch(_settings.PovId, 0);
+        _simpleVJoyInterface.SetPovSwitch(_settings.DeviceId, _settings.PovId, 0);
         _timer.Stop();
     }
 
@@ -91,13 +91,18 @@ public class PovButtonAction : KeypadBase
         [JsonProperty(PropertyName = "sticky")]
         public bool Sticky { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
                 PovId = 0,
                 Direction = 0,
-                Sticky = false
+                Sticky = false,
+                DeviceId = 0
             };
             return instance;
         }
