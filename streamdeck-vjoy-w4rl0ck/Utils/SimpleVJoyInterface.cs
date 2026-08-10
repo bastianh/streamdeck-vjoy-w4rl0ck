@@ -5,7 +5,7 @@ namespace streamdeck_vjoy_w4rl0ck.Utils;
 
 public delegate void ButtonSignalHandler(uint device, uint button, bool active);
 
-public delegate void AxisSignalHandler(uint axis, float value);
+public delegate void AxisSignalHandler(uint device, uint axis, float value);
 
 public delegate void VJoyStatusUpdateHandler();
 
@@ -230,21 +230,49 @@ public sealed class SimpleVJoyInterface
 
     public float GetCurrentAxisValue(ushort axis)
     {
-        return CurrentDevice?.GetCurrentAxisValue(axis) ?? 0;
+        return GetCurrentAxisValue(0, axis);
+    }
+
+    public float GetCurrentAxisValue(uint deviceId, ushort axis)
+    {
+        return GetAcquiredDevice(deviceId)?.GetCurrentAxisValue(axis) ?? 0;
     }
 
     public void SetAxis(ushort axis, float percent)
     {
-        var device = CurrentDevice;
+        SetAxis(0, axis, percent);
+    }
+
+    public void SetAxis(uint deviceId, ushort axis, float percent)
+    {
+        SetAxis(GetOrAcquireDevice(deviceId), axis, percent);
+    }
+
+    /// <summary>
+    ///     Puts an axis back where the key found it, on a device this plugin
+    ///     already holds. Giving an axis up must not claim a device to do it.
+    /// </summary>
+    public void ReleaseAxis(uint deviceId, ushort axis, float percent)
+    {
+        SetAxis(GetAcquiredDevice(deviceId), axis, percent);
+    }
+
+    private void SetAxis(VJoyDevice device, ushort axis, float percent)
+    {
         if (device == null) return;
-        if (device.SetAxis(axis, percent, out var value)) AxisSignal?.Invoke(axis, value);
+        if (device.SetAxis(axis, percent, out var value)) AxisSignal?.Invoke(device.Id, axis, value);
     }
 
     public void MoveAxis(ushort axis, double percent)
     {
-        var device = CurrentDevice;
+        MoveAxis(0, axis, percent);
+    }
+
+    public void MoveAxis(uint deviceId, ushort axis, double percent)
+    {
+        var device = GetOrAcquireDevice(deviceId);
         if (device == null) return;
-        if (device.MoveAxis(axis, percent, out var value)) AxisSignal?.Invoke(axis, value);
+        if (device.MoveAxis(axis, percent, out var value)) AxisSignal?.Invoke(device.Id, axis, value);
     }
 
     #endregion
@@ -256,6 +284,12 @@ public sealed class SimpleVJoyInterface
     ///     False when the device is not held, since nothing of ours is down on a
     ///     device we do not own — releasing one resets it.
     /// </summary>
+    /// <summary>Whether this plugin currently holds the key's device.</summary>
+    public bool IsDeviceAcquired(uint deviceId)
+    {
+        return GetAcquiredDevice(deviceId) != null;
+    }
+
     public bool GetButtonState(uint deviceId, uint button)
     {
         return GetAcquiredDevice(deviceId)?.GetButtonState(button) ?? false;

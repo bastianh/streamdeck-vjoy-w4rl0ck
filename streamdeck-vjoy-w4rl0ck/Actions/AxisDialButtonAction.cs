@@ -35,9 +35,9 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         }
 
         ConvertSettings();
+        lock (Instances) Instances.Add(this);
 #pragma warning disable 4014
-        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected)
-            SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
+        SendCurrentAxisValue();
 #pragma warning restore 4014
     }
 
@@ -47,14 +47,34 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         Connection.OnPropertyInspectorDidDisappear -= Connection_OnPropertyInspectorDidDisappear;
         SimpleVJoyInterface.VJoyStatusUpdateSignal -= SimpleVJoyInterface_OnVJoyStatusUpdate;
         SimpleVJoyInterface.AxisSignal -= SimpleVJoyInterface_OnAxisSignal;
+        lock (Instances) Instances.Remove(this);
         _timer.Stop();
         _timer.Dispose();
     }
 
-    private async void SimpleVJoyInterface_OnAxisSignal(uint axis, float value)
+    private async void SimpleVJoyInterface_OnAxisSignal(uint deviceId, uint axis, float value)
     {
+        if (deviceId != _simpleVJoyInterface.ResolveDeviceId(_settings.DeviceId)) return;
         if (axis != _settings.Axis) return;
         await SendAxisUpdate(value);
+    }
+
+    private async Task SendCurrentAxisValue()
+    {
+        if (!_configuration.Ready) return;
+        await SendAxisUpdate(CurrentAxisValue());
+    }
+
+    /// <summary>
+    ///     A device the plugin does not hold is reset as soon as it is acquired,
+    ///     so what to show for it is the neutral it will start from — not the
+    ///     value left over from the device this key used to point at.
+    /// </summary>
+    private float CurrentAxisValue()
+    {
+        return _simpleVJoyInterface.IsDeviceAcquired(_settings.DeviceId)
+            ? _simpleVJoyInterface.GetCurrentAxisValue(_settings.DeviceId, _settings.Axis)
+            : NeutralPercent(_settings.Axis) / 100f;
     }
 
     private async Task SendAxisUpdate(float value)
@@ -98,20 +118,23 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void DialRotate(DialRotatePayload payload)
     {
-        _simpleVJoyInterface.MoveAxis(_settings.Axis, payload.Ticks * _settings.Sensitivity / 100.0);
+        _simpleVJoyInterface.MoveAxis(_settings.DeviceId, _settings.Axis,
+            payload.Ticks * _settings.Sensitivity / 100.0);
     }
 
     public override void DialDown(DialPayload payload)
     {
         if (_settings.DialResetAxis) ResetAxis();
         if (_settings.DialButtonAction)
-            SimpleVJoyInterface.Instance.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Down);
+            SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _dialButtonId,
+                SimpleVJoyInterface.ButtonAction.Down);
     }
 
     public override void DialUp(DialPayload payload)
     {
         if (_settings.DialButtonAction)
-            SimpleVJoyInterface.Instance.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Up);
+            SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _dialButtonId,
+                SimpleVJoyInterface.ButtonAction.Up);
     }
 
     public override async void TouchPress(TouchpadPressPayload payload)
@@ -120,9 +143,11 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         if (_settings.TouchResetAxis) ResetAxis();
         if (_settings.TouchButtonAction)
         {
-            SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Down);
+            SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _touchButtonId,
+                SimpleVJoyInterface.ButtonAction.Down);
             await Task.Delay(100);
-            SimpleVJoyInterface.Instance.ButtonState(_touchButtonId, SimpleVJoyInterface.ButtonAction.Up);
+            SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _touchButtonId,
+                SimpleVJoyInterface.ButtonAction.Up);
         }
     }
 
@@ -132,10 +157,31 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private void ResetAxis()
     {
-        if (_configuration.GlobalSettings.AxisConfiguration[_settings.Axis] == 1)
-            _simpleVJoyInterface.SetAxis(_settings.Axis, 50);
-        else
-            _simpleVJoyInterface.SetAxis(_settings.Axis, 0);
+        _simpleVJoyInterface.SetAxis(_settings.DeviceId, _settings.Axis, NeutralPercent(_settings.Axis));
+    }
+
+    private float NeutralPercent(ushort axis)
+    {
+        return _configuration.GlobalSettings.AxisConfiguration[axis] == 1 ? 50 : 0;
+    }
+
+    /// <summary>
+    ///     Centres an axis this key has just stopped driving, unless another key
+    ///     still drives it — you do not let go of a stick someone else is holding.
+    ///     Keys are compared on the device they resolve to, so one set to the
+    ///     default device counts as driving whatever that currently is.
+    /// </summary>
+    private void ReleaseAxisIfUncontrolled(uint deviceId, ushort axis)
+    {
+        var device = _simpleVJoyInterface.ResolveDeviceId(deviceId);
+        lock (Instances)
+        {
+            if (Instances.Any(key => key != this && key._settings.Axis == axis &&
+                                     _simpleVJoyInterface.ResolveDeviceId(key._settings.DeviceId) == device))
+                return;
+        }
+
+        _simpleVJoyInterface.ReleaseAxis(deviceId, axis, NeutralPercent(axis));
     }
 
     private void TimerTick()
@@ -143,10 +189,10 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         switch (_settings.ButtonAction)
         {
             case 1:
-                _simpleVJoyInterface.MoveAxis(_settings.Axis, _settings.Sensitivity / 100.0);
+                _simpleVJoyInterface.MoveAxis(_settings.DeviceId, _settings.Axis, _settings.Sensitivity / 100.0);
                 break;
             case 2:
-                _simpleVJoyInterface.MoveAxis(_settings.Axis, -_settings.Sensitivity / 100.0);
+                _simpleVJoyInterface.MoveAxis(_settings.DeviceId, _settings.Axis, -_settings.Sensitivity / 100.0);
                 break;
         }
 
@@ -155,10 +201,15 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override async void ReceivedSettings(ReceivedSettingsPayload payload)
     {
+        var oldDeviceId = _settings.DeviceId;
+        var oldAxis = _settings.Axis;
         Tools.AutoPopulateSettings(_settings, payload.Settings);
         ConvertSettings();
-        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected)
-            await SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
+
+        if (oldDeviceId != _settings.DeviceId || oldAxis != _settings.Axis)
+            ReleaseAxisIfUncontrolled(oldDeviceId, oldAxis);
+
+        await SendCurrentAxisValue();
         if (!_settings.SetTitleValue) await Connection.SetTitleAsync("");
     }
 
@@ -197,11 +248,16 @@ public class AxisDialButtonAction : KeyAndEncoderBase
         [JsonProperty(PropertyName = "touch_button_id")]
         public string TouchButtonId { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
                 Axis = 0,
+                DeviceId = 0,
                 Sensitivity = 100,
                 ButtonAction = 0,
                 DialResetAxis = true,
@@ -247,8 +303,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
     {
-        if (_simpleVJoyInterface.Status == SimpleVJoyInterface.VJoyStatus.Connected)
-            await SendAxisUpdate(_simpleVJoyInterface.GetCurrentAxisValue(_settings.Axis));
+        await SendCurrentAxisValue();
         if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
     }
 
@@ -261,6 +316,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     #region Private Members
 
+    private static readonly List<AxisDialButtonAction> Instances = [];
     private readonly PluginSettings _settings;
     private bool _propertyInspectorIsOpen;
     private readonly Timer _timer = new(100);

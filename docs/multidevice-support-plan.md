@@ -341,8 +341,25 @@ vJoy.
   device, and sends its dial and touch button presses to the same device. Left
   last of the action migrations because it is the only one with a feedback loop
   back into the key display. `AxisConfiguration` stays global by design.
-- **Files:** `Utils/SimpleVJoyInterface.cs`, `Utils/VJoyDevice.cs`,
-  `Actions/AxisDialButtonAction.cs`,
+- **Done with one addition and one omission.** `VJoyDevice` needed no change —
+  it has been per-device since Step 3, `_maxAxisValue` included. The key used to
+  decide whether to display a value from `Status`, which is the *default*
+  device's; `IsDeviceAcquired(deviceId)` was added to ask about its own instead.
+  Reading a value never acquires a device, following the rule from the repoint
+  fix. An axis a key is repointed away from returns to the neutral its global
+  `AxisConfiguration` entry asks for — but only when no other key on the deck
+  still drives that axis on that device, the way a stick is not centred while
+  another hand is on it. That needs the action to know its live siblings, so it
+  keeps a static list of instances, and keys are compared on the device they
+  resolve to: one set to the default device drives whatever that currently is.
+
+  A key showing a device the plugin does not hold yet displays the neutral that
+  device will start from, since acquiring it resets it. Left alone: resetting an
+  axis that already sits at its neutral moves nothing in vJoy Monitor. The
+  plugin does call `UpdateVJD` every time; an identical report simply carries no
+  change for the HID layer to signal, and faking one would mean deliberately
+  jogging the axis.
+- **Files:** `Utils/SimpleVJoyInterface.cs`, `Actions/AxisDialButtonAction.cs`,
   `PropertyInspector/AxisDialButtonAction.html`
 - **Verify:** Build. Two Axis keys on the same axis but different devices: moving
   one changes only its device's axis in vJoy Monitor, and each key's title
