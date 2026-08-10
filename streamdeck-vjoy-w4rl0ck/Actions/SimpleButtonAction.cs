@@ -79,6 +79,7 @@ public class SimpleButtonAction : KeypadBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         var oldId = _settings.ButtonId;
+        var oldDeviceId = _settings.DeviceId;
         try
         {
             Tools.AutoPopulateSettings(_settings, payload.Settings);
@@ -88,6 +89,10 @@ public class SimpleButtonAction : KeypadBase
             Logger.Instance.LogMessage(TracingLevel.ERROR, $"Key config error: '{e.Message}'");
             Connection.ShowAlert();
         }
+
+        // A button held while the key is repointed stays held on the old device.
+        if (oldId != _settings.ButtonId || oldDeviceId != _settings.DeviceId)
+            SimpleVJoyInterface.Instance.ButtonState(oldDeviceId, oldId, SimpleVJoyInterface.ButtonAction.Up);
 
         if (oldId != _settings.ButtonId) SetButtonImage();
     }

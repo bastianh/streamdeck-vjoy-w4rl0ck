@@ -114,6 +114,7 @@ public class ToggleButtonAction : KeypadBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         var oldId = _settings.ButtonId;
+        var oldDeviceId = _settings.DeviceId;
         try
         {
             Tools.AutoPopulateSettings(_settings, payload.Settings);
@@ -123,6 +124,11 @@ public class ToggleButtonAction : KeypadBase
             Logger.Instance.LogMessage(TracingLevel.ERROR, $"Key config error: '{e.Message}'");
             Connection.ShowAlert();
         }
+
+        // A latched button is left latched once the key stops pointing at it, with
+        // nothing on the deck able to switch it off again.
+        if (oldId != _settings.ButtonId || oldDeviceId != _settings.DeviceId)
+            SimpleVJoyInterface.Instance.ButtonState(oldDeviceId, oldId, SimpleVJoyInterface.ButtonAction.Up);
 
         if (oldId != _settings.ButtonId) SetButtonImage();
         RefreshButtonState();

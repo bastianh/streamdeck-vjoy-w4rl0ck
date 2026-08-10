@@ -127,7 +127,8 @@ public sealed class SimpleVJoyInterface
 
     public void SetPovSwitch(uint deviceId, ushort pov, uint direction)
     {
-        GetOrAcquireDevice(deviceId)?.SetPovSwitch(pov, direction);
+        var device = direction == 0 ? GetAcquiredDevice(deviceId) : GetOrAcquireDevice(deviceId);
+        device?.SetPovSwitch(pov, direction);
     }
 
     public void ConnectToVJoy(uint id)
@@ -157,6 +158,21 @@ public sealed class SimpleVJoyInterface
     ///     The device a key drives: the one it selected, or the configured default
     ///     for id 0. Acquired on first use; null when it cannot be acquired.
     /// </summary>
+    /// <summary>
+    ///     The key's device if this plugin already holds it, else null. Releasing
+    ///     output uses this rather than acquiring: a device we do not hold has been
+    ///     reset already, and taking it back to release something would claim it
+    ///     from whoever has it now.
+    /// </summary>
+    private VJoyDevice GetAcquiredDevice(uint id)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            var device = _devices.GetValueOrDefault(ResolveDeviceId(id));
+            return device is { IsOwned: true } ? device : null;
+        }
+    }
+
     public VJoyDevice GetOrAcquireDevice(uint id)
     {
         lock (SingletonLockObject) // Ensure thread safety
@@ -242,11 +258,7 @@ public sealed class SimpleVJoyInterface
     /// </summary>
     public bool GetButtonState(uint deviceId, uint button)
     {
-        lock (SingletonLockObject) // Ensure thread safety
-        {
-            var device = _devices.GetValueOrDefault(ResolveDeviceId(deviceId));
-            return device != null && device.IsOwned && device.GetButtonState(button);
-        }
+        return GetAcquiredDevice(deviceId)?.GetButtonState(button) ?? false;
     }
 
     public void ButtonState(uint button, ButtonAction action)
@@ -256,7 +268,7 @@ public sealed class SimpleVJoyInterface
 
     public void ButtonState(uint deviceId, uint button, ButtonAction action)
     {
-        var device = GetOrAcquireDevice(deviceId);
+        var device = action == ButtonAction.Up ? GetAcquiredDevice(deviceId) : GetOrAcquireDevice(deviceId);
         if (device == null) return;
         if (device.ButtonState(button, action, out var newState))
             UpdateButtonSignal?.Invoke(device.Id, button, newState);

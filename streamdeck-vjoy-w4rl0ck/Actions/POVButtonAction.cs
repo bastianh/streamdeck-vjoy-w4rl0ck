@@ -65,7 +65,13 @@ public class PovButtonAction : KeypadBase
 
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
+        var oldDeviceId = _settings.DeviceId;
+        var oldPovId = _settings.PovId;
         Tools.AutoPopulateSettings(_settings, payload.Settings);
+
+        // Whatever this key deflected stays deflected once it stops pointing at it.
+        if (oldDeviceId != _settings.DeviceId || oldPovId != _settings.PovId)
+            _simpleVJoyInterface.SetPovSwitch(oldDeviceId, oldPovId, 0);
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
