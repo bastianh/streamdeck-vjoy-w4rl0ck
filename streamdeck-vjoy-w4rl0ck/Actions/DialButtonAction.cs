@@ -52,6 +52,7 @@ public class DialButtonAction : EncoderBase
 
     public override void DialDown(DialPayload payload)
     {
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         _simpleVJoyInterface.ButtonState(_settings.DeviceId, _dialButtonId, SimpleVJoyInterface.ButtonAction.Down);
     }
 
@@ -73,6 +74,7 @@ public class DialButtonAction : EncoderBase
     {
         // Logger.Instance.LogMessage(TracingLevel.INFO,$"Queueing {count} * button {buttonId}");
         if (count == 0 || buttonId == 0) return;
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
 
         lock (_queueLock)
         {
@@ -198,7 +200,7 @@ public class DialButtonAction : EncoderBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

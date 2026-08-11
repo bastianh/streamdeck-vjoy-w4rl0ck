@@ -99,6 +99,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void KeyPressed(KeyPayload payload)
     {
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         if (_settings.ButtonAction > 0)
         {
             TimerTick();
@@ -118,12 +119,14 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     public override void DialRotate(DialRotatePayload payload)
     {
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         _simpleVJoyInterface.MoveAxis(_settings.DeviceId, _settings.Axis,
             payload.Ticks * _settings.Sensitivity / 100.0);
     }
 
     public override void DialDown(DialPayload payload)
     {
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         if (_settings.DialResetAxis) ResetAxis();
         if (_settings.DialButtonAction)
             SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _dialButtonId,
@@ -140,6 +143,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
     public override async void TouchPress(TouchpadPressPayload payload)
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, "TouchScreen Pressed");
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) await Connection.ShowAlert();
         if (_settings.TouchResetAxis) ResetAxis();
         if (_settings.TouchButtonAction)
         {
@@ -309,7 +313,7 @@ public class AxisDialButtonAction : KeyAndEncoderBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

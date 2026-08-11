@@ -51,6 +51,7 @@ public class SimpleButtonAction : KeypadBase
     public override void KeyPressed(KeyPayload payload)
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed '{payload.IsInMultiAction}'");
+        if (!SimpleVJoyInterface.Instance.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
             SimpleVJoyInterface.ButtonAction.Down);
         if (payload.IsInMultiAction) _timer.Start();
@@ -152,7 +153,8 @@ public class SimpleButtonAction : KeypadBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

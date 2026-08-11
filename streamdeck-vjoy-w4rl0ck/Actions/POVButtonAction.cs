@@ -43,6 +43,7 @@ public class PovButtonAction : KeypadBase
 
     public override void KeyPressed(KeyPayload payload)
     {
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         _simpleVJoyInterface.SetPovSwitch(_settings.DeviceId, _settings.PovId, _settings.Direction);
         if (payload.IsInMultiAction && !_settings.Sticky) _timer.Start();
     }
@@ -136,7 +137,8 @@ public class PovButtonAction : KeypadBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

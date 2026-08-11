@@ -195,6 +195,9 @@ public sealed class SimpleVJoyInterface
             else
             {
                 LogDeviceStatus(deviceId, status);
+                // An open Property Inspector reports on the key's own device, and
+                // this is the moment that device was taken or refused.
+                SendStatusUpdateSignal();
             }
 
             return device;
@@ -288,6 +291,16 @@ public sealed class SimpleVJoyInterface
     public bool IsDeviceAcquired(uint deviceId)
     {
         return GetAcquiredDevice(deviceId) != null;
+    }
+
+    /// <summary>
+    ///     Whether the key's device can be driven, acquiring it if it is not held
+    ///     yet. False when the device does not exist or belongs to someone else,
+    ///     which is a key press that would otherwise vanish without a trace.
+    /// </summary>
+    public bool IsDeviceUsable(uint deviceId)
+    {
+        return GetOrAcquireDevice(deviceId) != null;
     }
 
     public bool GetButtonState(uint deviceId, uint button)

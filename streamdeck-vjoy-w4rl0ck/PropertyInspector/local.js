@@ -5,9 +5,29 @@ let selectedDevice = null;
 function sendFromPlugin(payload) {
   console.log("sendFromPlugin payload", payload);
   lastPluginPayload = payload;
-  document.getElementById("status").innerHTML =
-    `Device #${payload.device}: (${payload.status})`;
+  document.getElementById("status").innerHTML = key_device_status(payload);
   update_device_selector();
+}
+
+// What this key's own device is doing, which is not always the default device
+// the plugin reports its overall status for.
+function key_device_status(payload) {
+  if (payload.status === "Deactivated") return "vJoy is not enabled";
+
+  const id = payload.keyDevice;
+  if (!id) return "no vJoy device selected";
+
+  const device = (payload.devices ?? []).find((entry) => entry.vJoyIndex === id);
+  if (device === undefined) return `Device #${id} is not configured in vJoy`;
+
+  switch (device.vJoyStatus) {
+    case "VJD_STAT_OWN":
+      return `Device #${id} is in use by this plugin`;
+    case "VJD_STAT_BUSY":
+      return `Device #${id} is in use by another application`;
+    default:
+      return `Device #${id} is free, this key will take it when used`;
+  }
 }
 
 // loadConfiguration cannot fill the device selector: its options are only known

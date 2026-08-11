@@ -376,6 +376,13 @@ vJoy.
   status line in `local.js` changes from a single device to the key's device plus
   the acquired set. With N devices, "nothing happened" is now ambiguous in a way
   it never was with one device, which is what makes this its own step.
+- **Done as planned.** `IsDeviceUsable` is the one entry point the actions call:
+  it attempts the acquisition and says whether the press can land, so the alert
+  and the output take the same decision. `GetPropertyInspectorData` takes the
+  asking key's device, and the status line names that device and its state
+  rather than the default device's. A failed acquisition of a non-default device
+  now raises the status signal too, so an open Property Inspector says why on
+  the first press instead of after the next reopen.
 - **Files:** `Utils/SimpleVJoyInterface.cs`, `Utils/Configuration.cs`,
   `PropertyInspector/local.js`, the six `Actions/*.cs`
 - **Verify:** Configure a key for a device id that is not enabled in vJoy

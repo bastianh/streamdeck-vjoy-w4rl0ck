@@ -65,6 +65,7 @@ public class TriggerButtonAction : KeypadBase
         _longPressTimer.Stop();
         var newState = payload.State == 0 ? 1u : 0;
         _currentButtonId = newState == 0 ? _settings.ButtonId1 : _settings.ButtonId2;
+        if (!SimpleVJoyInterface.Instance.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _currentButtonId,
             SimpleVJoyInterface.ButtonAction.Down);
         Connection.SetStateAsync(newState);
@@ -166,7 +167,8 @@ public class TriggerButtonAction : KeypadBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

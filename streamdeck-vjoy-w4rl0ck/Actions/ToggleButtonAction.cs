@@ -67,6 +67,7 @@ public class ToggleButtonAction : KeypadBase
             _longPressTimer.Stop();
         }
 
+        if (!SimpleVJoyInterface.Instance.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
         SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
             SimpleVJoyInterface.ButtonAction.Toggle);
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
@@ -195,7 +196,8 @@ public class ToggleButtonAction : KeypadBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion
