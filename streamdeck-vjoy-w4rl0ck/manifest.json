@@ -12,7 +12,7 @@
         }
       ],
       "SupportedInMultiActions": true,
-      "Tooltip": "A button that can trigger a vJoy button",
+      "Tooltip": "A button that can trigger a vJoy button on any of your vJoy devices",
       "PropertyInspectorPath": "PropertyInspector/SimpleButtonAction.html"
     },
     {
@@ -33,7 +33,7 @@
       ],
       "SupportedInMultiActions": false,
       "DisableAutomaticStates": true,
-      "Tooltip": "A multistate button that triggers different vJoy buttons",
+      "Tooltip": "Two states with a vJoy button each: a tap sends the other state's button and switches to it, a long press sends the one on the image",
       "PropertyInspectorPath": "PropertyInspector/TriggerButtonAction.html"
     },
     {
@@ -48,7 +48,7 @@
         }
       ],
       "SupportedInMultiActions": true,
-      "Tooltip": "A button that can control a vJoy pov hat",
+      "Tooltip": "A button that can control a continuous vJoy pov hat",
       "PropertyInspectorPath": "PropertyInspector/PovButtonAction.html"
     },
     {
@@ -120,7 +120,7 @@
         }
       },
       "SupportedInMultiActions": false,
-      "Tooltip": "A stream deck+ dial that pushes vjoy buttons when rotated",
+      "Tooltip": "A stream deck+ dial that pushes vjoy buttons when rotated, pressed or touched",
       "PropertyInspectorPath": "PropertyInspector/DialButtonAction.html"
     }
   ],
