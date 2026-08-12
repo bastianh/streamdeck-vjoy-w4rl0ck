@@ -8,7 +8,7 @@ using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
-[PluginActionId("dev.w4rl0ck.streamdeck.vjoy.simplebutton")]
+[PluginActionId(ActionIds.SimpleButton)]
 public class SimpleButtonAction : KeypadBase
 {
     public SimpleButtonAction(SDConnection connection, InitialPayload payload) : base(connection, payload)

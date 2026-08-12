@@ -8,7 +8,7 @@ using Timer = System.Timers.Timer;
 
 namespace streamdeck_vjoy_w4rl0ck.Actions;
 
-[PluginActionId("dev.w4rl0ck.streamdeck.vjoy.triggerbutton")]
+[PluginActionId(ActionIds.TriggerButton)]
 public class TriggerButtonAction : KeypadBase
 {
     public TriggerButtonAction(SDConnection connection, InitialPayload payload) : base(connection, payload)
