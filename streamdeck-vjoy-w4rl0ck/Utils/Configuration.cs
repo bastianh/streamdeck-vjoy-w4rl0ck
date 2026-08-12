@@ -79,12 +79,18 @@ public sealed class Configuration : IDisposable
         ConfigurationUpdated();
     }
 
-    public JObject GetPropertyInspectorData()
+    /// <param name="keyDeviceId">
+    ///     The asking key's device setting, so the Property Inspector can report on
+    ///     the device that key actually drives rather than on the default one.
+    /// </param>
+    public JObject GetPropertyInspectorData(uint keyDeviceId = 0)
     {
         var data = new JObject
         {
             ["device"] = SimpleVJoyInterface.Instance.CurrentVJoyId,
+            ["keyDevice"] = SimpleVJoyInterface.Instance.ResolveDeviceId(keyDeviceId),
             ["status"] = SimpleVJoyInterface.Instance.Status.ToString(),
+            ["devices"] = JArray.FromObject(SimpleVJoyInterface.Instance.ConfiguredDevices()),
             ["global"] = JObject.FromObject(GlobalSettings)
         };
         return data;

@@ -51,7 +51,9 @@ public class SimpleButtonAction : KeypadBase
     public override void KeyPressed(KeyPayload payload)
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Pressed '{payload.IsInMultiAction}'");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        if (!SimpleVJoyInterface.Instance.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Down);
         if (payload.IsInMultiAction) _timer.Start();
     }
 
@@ -59,13 +61,15 @@ public class SimpleButtonAction : KeypadBase
     {
         if (payload.IsInMultiAction) return;
         Logger.Instance.LogMessage(TracingLevel.INFO, $"Key Released '{payload.IsInMultiAction}'");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Up);
     }
 
     private void TimerTick()
     {
         Logger.Instance.LogMessage(TracingLevel.INFO, "Timer Released");
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Up);
         _timer.Stop();
     }
 
@@ -76,6 +80,7 @@ public class SimpleButtonAction : KeypadBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         var oldId = _settings.ButtonId;
+        var oldDeviceId = _settings.DeviceId;
         try
         {
             Tools.AutoPopulateSettings(_settings, payload.Settings);
@@ -85,6 +90,10 @@ public class SimpleButtonAction : KeypadBase
             Logger.Instance.LogMessage(TracingLevel.ERROR, $"Key config error: '{e.Message}'");
             Connection.ShowAlert();
         }
+
+        // A button held while the key is repointed stays held on the old device.
+        if (oldId != _settings.ButtonId || oldDeviceId != _settings.DeviceId)
+            SimpleVJoyInterface.Instance.ButtonState(oldDeviceId, oldId, SimpleVJoyInterface.ButtonAction.Up);
 
         if (oldId != _settings.ButtonId) SetButtonImage();
     }
@@ -107,11 +116,16 @@ public class SimpleButtonAction : KeypadBase
         [JsonProperty(PropertyName = "buttonId")]
         public uint ButtonId { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
-                ButtonId = 1
+                ButtonId = 1,
+                DeviceId = 0
             };
             return instance;
         }
@@ -139,7 +153,8 @@ public class SimpleButtonAction : KeypadBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

@@ -3,9 +3,9 @@ using vJoyInterfaceWrap;
 
 namespace streamdeck_vjoy_w4rl0ck.Utils;
 
-public delegate void ButtonSignalHandler(uint button, bool active);
+public delegate void ButtonSignalHandler(uint device, uint button, bool active);
 
-public delegate void AxisSignalHandler(uint axis, float value);
+public delegate void AxisSignalHandler(uint device, uint axis, float value);
 
 public delegate void VJoyStatusUpdateHandler();
 
@@ -31,22 +31,22 @@ public sealed class SimpleVJoyInterface
     private static SimpleVJoyInterface _instance;
     private static readonly object SingletonLockObject = new();
     private readonly Configuration _configuration;
-    private readonly object _updateLockObject = new();
+    private readonly Dictionary<uint, VJoyDevice> _devices = new();
     private readonly vJoy _vJoy;
-    private vJoy.JoystickState _iReport;
-    private long _maxAxisValue;
+    private VJoyStatus _interfaceStatus;
 
     private SimpleVJoyInterface()
     {
         _vJoy = new vJoy();
-        _iReport = new vJoy.JoystickState();
-        ChangeStatus(VJoyStatus.Initialized);
-        if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated);
+        ChangeStatus(VJoyStatus.Initialized, 0);
+        if (!_vJoy.vJoyEnabled()) ChangeStatus(VJoyStatus.Deactivated, 0);
         _configuration = Configuration.Instance;
     }
 
     public uint CurrentVJoyId { get; private set; }
-    public VJoyStatus Status { get; private set; }
+    public VJoyStatus Status => CurrentDevice?.Status ?? _interfaceStatus;
+
+    private VJoyDevice CurrentDevice => _devices.GetValueOrDefault(CurrentVJoyId);
 
     #region Singleton
 
@@ -68,9 +68,9 @@ public sealed class SimpleVJoyInterface
     public static event VJoyStatusUpdateHandler VJoyStatusUpdateSignal;
 
 
-    public List<uint> ConfiguredDevices()
+    public List<VJoyDeviceListEntry> ConfiguredDevices()
     {
-        var result = new List<uint>();
+        var result = new List<VJoyDeviceListEntry>();
 
         for (uint i = 1; i <= 16; i++)
         {
@@ -80,7 +80,7 @@ public sealed class SimpleVJoyInterface
                 case VjdStat.VJD_STAT_OWN:
                 case VjdStat.VJD_STAT_FREE:
                 case VjdStat.VJD_STAT_BUSY:
-                    result.Add(i);
+                    result.Add(new VJoyDeviceListEntry(i, status));
                     break;
                 default:
                     continue;
@@ -102,12 +102,17 @@ public sealed class SimpleVJoyInterface
         }
     }
 
-    private void ChangeStatus(VJoyStatus status)
+    private void ChangeStatus(VJoyStatus status, uint deviceId)
     {
-        Status = status;
-        var level = GetTracingLevelForStatus(status);
-        Logger.Instance.LogMessage(level, $"vJoy device '{CurrentVJoyId}' status is now '{status}'");
+        _interfaceStatus = status;
+        LogDeviceStatus(deviceId, status);
         SendStatusUpdateSignal();
+    }
+
+    private void LogDeviceStatus(uint deviceId, VJoyStatus status)
+    {
+        var level = GetTracingLevelForStatus(status);
+        Logger.Instance.LogMessage(level, $"vJoy device '{deviceId}' status is now '{status}'");
     }
 
     public void SendStatusUpdateSignal()
@@ -115,115 +120,112 @@ public sealed class SimpleVJoyInterface
         VJoyStatusUpdateSignal?.Invoke();
     }
 
-    private ref uint GetPovReference(ushort pov)
-    {
-        switch (pov)
-        {
-            case 0:
-                return ref _iReport.bHats;
-            case 1:
-                return ref _iReport.bHatsEx1;
-            case 2:
-                return ref _iReport.bHatsEx2;
-            case 3:
-                return ref _iReport.bHatsEx3;
-        }
-
-        return ref _iReport.bHats;
-    }
-
-    private uint GetPovDirection(ushort direction)
-    {
-        switch (direction)
-        {
-            case 1:
-            default:
-                return 0xFFFFFFFF;
-        }
-    }
-
     public void SetPovSwitch(ushort pov, uint direction)
     {
-        lock (_updateLockObject)
-        {
-            ref var povRef = ref GetPovReference(pov);
-            if (direction == 0) povRef = 0xFFFFFFFF;
-            else povRef = (direction - 1) * 4500;
-            UpdateVJoy();
-        }
+        SetPovSwitch(0, pov, direction);
     }
 
-    private void ResetAxisAndPovs()
+    public void SetPovSwitch(uint deviceId, ushort pov, uint direction)
     {
-        for (ushort index = 0; index < _configuration.GlobalSettings.AxisConfiguration.Length; index++)
-        {
-            var axisConf = _configuration.GlobalSettings.AxisConfiguration[index];
-            ref var axisRef = ref GetAxisReference(index);
-            if (axisConf == 1) axisRef = (int)_maxAxisValue / 2;
-            else axisRef = 0;
-        }
-
-        _iReport.bHats = _iReport.bHatsEx1 = _iReport.bHatsEx2 = _iReport.bHatsEx3 = 0xFFFFFFFF;
+        var device = direction == 0 ? GetAcquiredDevice(deviceId) : GetOrAcquireDevice(deviceId);
+        device?.SetPovSwitch(pov, direction);
     }
 
     public void ConnectToVJoy(uint id)
     {
         lock (SingletonLockObject) // Ensure thread safety
         {
-            lock (_updateLockObject)
-            {
-                if (CurrentVJoyId == id && _vJoy.GetVJDStatus(CurrentVJoyId) == VjdStat.VJD_STAT_OWN) return;
-                if (CurrentVJoyId > 0) DisconnectFromVJoy();
-                if (!_vJoy.vJoyEnabled())
-                {
-                    ChangeStatus(VJoyStatus.Deactivated);
-                    return;
-                }
+            var currentDevice = CurrentDevice;
+            if (currentDevice != null && currentDevice.Id == id && currentDevice.IsOwned) return;
+            if (currentDevice != null) DisconnectFromVJoy();
 
-                if (!_vJoy.isVJDExists(id))
-                {
-                    ChangeStatus(VJoyStatus.VJoyDeviceNotExistent);
-                    return;
-                }
-
-                if (!_vJoy.AcquireVJD(id))
-                {
-                    ChangeStatus(VJoyStatus.VJoyDeviceBusy);
-                    return;
-                }
-
-                CurrentVJoyId = id;
-                _vJoy.ResetVJD(id);
-                _vJoy.GetVJDAxisMax(id, HID_USAGES.HID_USAGE_X, ref _maxAxisValue);
-                Logger.Instance.LogMessage(TracingLevel.DEBUG,
-                    $"vJoy Device: {id}, axis maxval is now '{_maxAxisValue}'");
-                if (_maxAxisValue == 0) // TODO: find out why that happens sometimes
-                {
-                    Logger.Instance.LogMessage(TracingLevel.ERROR, "overwriting maxval to 32767 :(");
-                    _maxAxisValue = 32767;
-                }
-
-                ResetAxisAndPovs();
-                UpdateVJoy();
-                ChangeStatus(VJoyStatus.Connected);
-            }
+            var status = AcquireDevice(id, out var device);
+            if (device != null) CurrentVJoyId = id;
+            ChangeStatus(status, id);
         }
     }
 
-    private bool UpdateVJoy()
+    /// <summary>
+    ///     The device id a key setting points at, without acquiring anything:
+    ///     the one it selected, or the configured default for id 0.
+    /// </summary>
+    public uint ResolveDeviceId(uint id)
     {
-        _iReport.bDevice = (byte)CurrentVJoyId;
-        if (_vJoy.UpdateVJD(CurrentVJoyId, ref _iReport))
-            return true;
-        _vJoy.AcquireVJD(CurrentVJoyId);
-        return false;
+        return id > 0 ? id : _configuration.GlobalSettings.VJoyDeviceId;
+    }
+
+    /// <summary>
+    ///     The device a key drives: the one it selected, or the configured default
+    ///     for id 0. Acquired on first use; null when it cannot be acquired.
+    /// </summary>
+    /// <summary>
+    ///     The key's device if this plugin already holds it, else null. Releasing
+    ///     output uses this rather than acquiring: a device we do not hold has been
+    ///     reset already, and taking it back to release something would claim it
+    ///     from whoever has it now.
+    /// </summary>
+    private VJoyDevice GetAcquiredDevice(uint id)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            var device = _devices.GetValueOrDefault(ResolveDeviceId(id));
+            return device is { IsOwned: true } ? device : null;
+        }
+    }
+
+    public VJoyDevice GetOrAcquireDevice(uint id)
+    {
+        lock (SingletonLockObject) // Ensure thread safety
+        {
+            var deviceId = ResolveDeviceId(id);
+            if (_devices.TryGetValue(deviceId, out var device))
+            {
+                if (device.IsOwned) return device;
+                _devices.Remove(deviceId); // lost to another process
+            }
+
+            var status = AcquireDevice(deviceId, out device);
+            // A key can be the first to reach the default device, when that device
+            // was still busy elsewhere at the time the global settings arrived.
+            if (deviceId == _configuration.GlobalSettings.VJoyDeviceId)
+            {
+                if (device != null) CurrentVJoyId = deviceId;
+                ChangeStatus(status, deviceId);
+            }
+            else
+            {
+                LogDeviceStatus(deviceId, status);
+                // An open Property Inspector reports on the key's own device, and
+                // this is the moment that device was taken or refused.
+                SendStatusUpdateSignal();
+            }
+
+            return device;
+        }
+    }
+
+    private VJoyStatus AcquireDevice(uint id, out VJoyDevice device)
+    {
+        device = null;
+        if (id == 0) return VJoyStatus.VJoyDeviceNotExistent;
+        if (!_vJoy.vJoyEnabled()) return VJoyStatus.Deactivated;
+
+        var acquired = new VJoyDevice(_vJoy, _configuration, id);
+        var status = acquired.Acquire();
+        if (status != VJoyStatus.Connected) return status;
+
+        _devices[id] = acquired;
+        device = acquired;
+        return status;
     }
 
     private void DisconnectFromVJoy()
     {
-        if (CurrentVJoyId == 0) return;
-        _vJoy.RelinquishVJD(CurrentVJoyId);
-        ChangeStatus(VJoyStatus.Disconnected);
+        var device = CurrentDevice;
+        if (device == null) return;
+        device.Release();
+        _devices.Remove(device.Id);
+        ChangeStatus(VJoyStatus.Disconnected, device.Id);
         CurrentVJoyId = 0;
     }
 
@@ -231,112 +233,92 @@ public sealed class SimpleVJoyInterface
 
     public float GetCurrentAxisValue(ushort axis)
     {
-        ref var axisRef = ref GetAxisReference(axis);
-        return (float)axisRef / _maxAxisValue;
+        return GetCurrentAxisValue(0, axis);
     }
 
-    private ref int GetAxisReference(ushort axis)
+    public float GetCurrentAxisValue(uint deviceId, ushort axis)
     {
-        switch (axis)
-        {
-            case 0:
-                return ref _iReport.AxisX;
-            case 1:
-                return ref _iReport.AxisY;
-            case 2:
-                return ref _iReport.AxisZ;
-            case 3:
-                return ref _iReport.AxisXRot;
-            case 4:
-                return ref _iReport.AxisYRot;
-            case 5:
-                return ref _iReport.AxisZRot;
-            case 6:
-                return ref _iReport.Slider;
-            case 7:
-                return ref _iReport.Dial;
-        }
-
-        return ref _iReport.AxisX;
+        return GetAcquiredDevice(deviceId)?.GetCurrentAxisValue(axis) ?? 0;
     }
 
     public void SetAxis(ushort axis, float percent)
     {
-        if (_maxAxisValue == 0) return;
-        lock (_updateLockObject)
-        {
-            ref var axisRef = ref GetAxisReference(axis);
-            var value = (int)(_maxAxisValue / 100.0 * percent);
-            axisRef = Math.Clamp(value, 0, (int)_maxAxisValue);
+        SetAxis(0, axis, percent);
+    }
 
-            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
-        }
+    public void SetAxis(uint deviceId, ushort axis, float percent)
+    {
+        SetAxis(GetOrAcquireDevice(deviceId), axis, percent);
+    }
+
+    /// <summary>
+    ///     Puts an axis back where the key found it, on a device this plugin
+    ///     already holds. Giving an axis up must not claim a device to do it.
+    /// </summary>
+    public void ReleaseAxis(uint deviceId, ushort axis, float percent)
+    {
+        SetAxis(GetAcquiredDevice(deviceId), axis, percent);
+    }
+
+    private void SetAxis(VJoyDevice device, ushort axis, float percent)
+    {
+        if (device == null) return;
+        if (device.SetAxis(axis, percent, out var value)) AxisSignal?.Invoke(device.Id, axis, value);
     }
 
     public void MoveAxis(ushort axis, double percent)
     {
-        if (_maxAxisValue == 0) return;
-        lock (_updateLockObject)
-        {
-            ref var axisRef = ref GetAxisReference(axis);
-            var value = (int)(_maxAxisValue / 100.0 * percent);
-            axisRef = Math.Clamp(axisRef + value, 0, (int)_maxAxisValue);
+        MoveAxis(0, axis, percent);
+    }
 
-            if (UpdateVJoy()) AxisSignal?.Invoke(axis, (float)axisRef / _maxAxisValue);
-        }
+    public void MoveAxis(uint deviceId, ushort axis, double percent)
+    {
+        var device = GetOrAcquireDevice(deviceId);
+        if (device == null) return;
+        if (device.MoveAxis(axis, percent, out var value)) AxisSignal?.Invoke(device.Id, axis, value);
     }
 
     #endregion
 
     #region Buttons
 
-    public void ButtonState(uint button, ButtonAction action)
+    /// <summary>
+    ///     Whether the key's device currently reports that button as pressed.
+    ///     False when the device is not held, since nothing of ours is down on a
+    ///     device we do not own — releasing one resets it.
+    /// </summary>
+    /// <summary>Whether this plugin currently holds the key's device.</summary>
+    public bool IsDeviceAcquired(uint deviceId)
     {
-        var buttonId = button - 1;
-        var arrayIndex = buttonId / 32;
-        var bitPosition = buttonId % 32;
-        var newState = false;
-
-
-        lock (_updateLockObject)
-        {
-            switch (arrayIndex)
-            {
-                case 0: // For 1-32 buttons
-                    newState = SetButtonState(ref _iReport.Buttons, bitPosition, action);
-                    break;
-                case 1: // For 33-64 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx1, bitPosition, action);
-                    break;
-                case 2: // For 65-96 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx2, bitPosition, action);
-                    break;
-                case 3: // For 97-128 buttons
-                    newState = SetButtonState(ref _iReport.ButtonsEx3, bitPosition, action);
-                    break;
-            }
-
-            if (UpdateVJoy()) UpdateButtonSignal?.Invoke(button, newState);
-        }
+        return GetAcquiredDevice(deviceId) != null;
     }
 
-
-    private bool SetButtonState(ref uint buttons, uint bitPosition, ButtonAction action)
+    /// <summary>
+    ///     Whether the key's device can be driven, acquiring it if it is not held
+    ///     yet. False when the device does not exist or belongs to someone else,
+    ///     which is a key press that would otherwise vanish without a trace.
+    /// </summary>
+    public bool IsDeviceUsable(uint deviceId)
     {
-        switch (action)
-        {
-            case ButtonAction.Toggle:
-                buttons ^= 1U << (int)bitPosition;
-                return (buttons & (1u << (int)bitPosition)) != 0;
-            case ButtonAction.Down:
-                buttons |= 1u << (int)bitPosition;
-                return true;
-            case ButtonAction.Up:
-                buttons &= ~(1u << (int)bitPosition);
-                return false;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(action), action, null);
-        }
+        return GetOrAcquireDevice(deviceId) != null;
+    }
+
+    public bool GetButtonState(uint deviceId, uint button)
+    {
+        return GetAcquiredDevice(deviceId)?.GetButtonState(button) ?? false;
+    }
+
+    public void ButtonState(uint button, ButtonAction action)
+    {
+        ButtonState(0, button, action);
+    }
+
+    public void ButtonState(uint deviceId, uint button, ButtonAction action)
+    {
+        var device = action == ButtonAction.Up ? GetAcquiredDevice(deviceId) : GetOrAcquireDevice(deviceId);
+        if (device == null) return;
+        if (device.ButtonState(button, action, out var newState))
+            UpdateButtonSignal?.Invoke(device.Id, button, newState);
     }
 
     #endregion

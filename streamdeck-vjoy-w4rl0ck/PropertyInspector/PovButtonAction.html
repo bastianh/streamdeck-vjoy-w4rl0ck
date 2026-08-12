@@ -9,6 +9,7 @@
     <title>vJoy Settings</title>
     <link href="sdpi.css" rel="stylesheet">
     <script src="sdtools.common.js"></script>
+    <script src="js/devices.js"></script>
     <script src="local.js"></script>
 </head>
 <body>
@@ -45,6 +46,13 @@
         <div class="sdpi-item-label">Sticky</div>
         <input class="sdpi-item-value" data-setting="sticky" id="sticky_check" type="checkbox">
         <label for="sticky_check"><span></span>Do not return to center automatically</label>
+    </div>
+
+    <div class="sdpi-item">
+        <div class="sdpi-item-label">Device</div>
+        <select class="sdpi-item-value select" data-default="0" data-setting="device">
+            <option value="0">Default</option>
+        </select>
     </div>
 
     <div class="sdpi-heading">Global Settings</div>

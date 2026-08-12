@@ -52,12 +52,13 @@ public class DialButtonAction : EncoderBase
 
     public override void DialDown(DialPayload payload)
     {
-        _simpleVJoyInterface.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Down);
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
+        _simpleVJoyInterface.ButtonState(_settings.DeviceId, _dialButtonId, SimpleVJoyInterface.ButtonAction.Down);
     }
 
     public override void DialUp(DialPayload payload)
     {
-        _simpleVJoyInterface.ButtonState(_dialButtonId, SimpleVJoyInterface.ButtonAction.Up);
+        _simpleVJoyInterface.ButtonState(_settings.DeviceId, _dialButtonId, SimpleVJoyInterface.ButtonAction.Up);
     }
 
     public override void TouchPress(TouchpadPressPayload payload)
@@ -73,6 +74,7 @@ public class DialButtonAction : EncoderBase
     {
         // Logger.Instance.LogMessage(TracingLevel.INFO,$"Queueing {count} * button {buttonId}");
         if (count == 0 || buttonId == 0) return;
+        if (!_simpleVJoyInterface.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
 
         lock (_queueLock)
         {
@@ -94,7 +96,8 @@ public class DialButtonAction : EncoderBase
                 if (_buttonQueue.Count > 0)
                 {
                     _currentlyActiveButtonId = _buttonQueue[0];
-                    _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Down);
+                    _simpleVJoyInterface.ButtonState(_settings.DeviceId, _currentlyActiveButtonId,
+                        SimpleVJoyInterface.ButtonAction.Down);
                     // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button down {_currentlyActiveButtonId}");
                     _buttonQueue.RemoveAt(0);
                 }
@@ -107,7 +110,8 @@ public class DialButtonAction : EncoderBase
             }
             else
             {
-                _simpleVJoyInterface.ButtonState(_currentlyActiveButtonId, SimpleVJoyInterface.ButtonAction.Up);
+                _simpleVJoyInterface.ButtonState(_settings.DeviceId, _currentlyActiveButtonId,
+                    SimpleVJoyInterface.ButtonAction.Up);
                 // Logger.Instance.LogMessage(TracingLevel.DEBUG, $"button up {_currentlyActiveButtonId}");
                 _currentlyActiveButtonId = 0;
             }
@@ -138,6 +142,10 @@ public class DialButtonAction : EncoderBase
         [JsonProperty(PropertyName = "touch_button_id")]
         public string TouchButtonId { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
@@ -145,7 +153,8 @@ public class DialButtonAction : EncoderBase
                 DialButtonId = string.Empty,
                 TouchButtonId = string.Empty,
                 CcwButtonId = string.Empty,
-                CwButtonId = string.Empty
+                CwButtonId = string.Empty,
+                DeviceId = 0
             };
             return instance;
         }
@@ -191,7 +200,7 @@ public class DialButtonAction : EncoderBase
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(_configuration.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

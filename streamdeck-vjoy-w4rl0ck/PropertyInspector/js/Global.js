@@ -1,10 +1,22 @@
+let selectedDevice = null;
+
 function receivedGlobalSettings(settings) {
   console.log("LOADING", settings);
   payload = { ...settings };
   for (let i = 0; i < 9; i++) {
     payload["axis" + i] = settings.axis[i];
   }
+  selectedDevice = settings.vjoy;
   update_setting_fields(document, payload);
+}
+
+function receivedPluginData(payload) {
+  if (!payload.devices) return;
+  update_device_options(
+    document.querySelector('[data-setting="vjoy"]'),
+    payload.devices,
+    selectedDevice,
+  );
 }
 
 function saveGlobalSettings() {
@@ -25,6 +37,8 @@ window.onload = () => {
   window.addEventListener("message", function (event) {
     if (event.data.event === "didReceiveGlobalSettings") {
       receivedGlobalSettings(event.data.payload.settings);
+    } else if (event.data.event === "sendToPropertyInspector") {
+      receivedPluginData(event.data.payload);
     }
   });
   const saveSettings = debounce(saveGlobalSettings, 250);
@@ -32,4 +46,5 @@ window.onload = () => {
   register_settings_handler(document, saveSettings);
 
   window.opener.requestGlobalSettings();
+  window.opener.requestPluginData();
 };

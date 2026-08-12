@@ -35,6 +35,7 @@ public class ToggleButtonAction : KeypadBase
         }
 
         SetButtonImage();
+        RefreshButtonState();
     }
 
     public override void Dispose()
@@ -45,8 +46,9 @@ public class ToggleButtonAction : KeypadBase
         SimpleVJoyInterface.UpdateButtonSignal -= SimpleVJoyInterface_OnUpdateButtonSignal;
     }
 
-    private void SimpleVJoyInterface_OnUpdateButtonSignal(uint buttonId, bool state)
+    private void SimpleVJoyInterface_OnUpdateButtonSignal(uint deviceId, uint buttonId, bool state)
     {
+        if (deviceId != SimpleVJoyInterface.Instance.ResolveDeviceId(_settings.DeviceId)) return;
         if (buttonId != _settings.ButtonId) return;
         _buttonState = state;
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
@@ -65,14 +67,16 @@ public class ToggleButtonAction : KeypadBase
             _longPressTimer.Stop();
         }
 
-        SimpleVJoyInterface.Instance.ButtonState(_settings.ButtonId, SimpleVJoyInterface.ButtonAction.Toggle);
+        if (!SimpleVJoyInterface.Instance.IsDeviceUsable(_settings.DeviceId)) Connection.ShowAlert();
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, _settings.ButtonId,
+            SimpleVJoyInterface.ButtonAction.Toggle);
         Connection.SetStateAsync(_buttonState ? 1u : 0u);
     }
 
     private void LongPressTimerTick()
     {
         if (_settings.LongPressButtonId == null) return;
-        SimpleVJoyInterface.Instance.ButtonState((uint)_settings.LongPressButtonId,
+        SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, (uint)_settings.LongPressButtonId,
             SimpleVJoyInterface.ButtonAction.Down);
         _buttonTimer.Start();
         Connection.ShowOk();
@@ -81,13 +85,22 @@ public class ToggleButtonAction : KeypadBase
     private void ButtonTimerTick()
     {
         if (_settings.LongPressButtonId != null)
-            SimpleVJoyInterface.Instance.ButtonState((uint)_settings.LongPressButtonId,
+            SimpleVJoyInterface.Instance.ButtonState(_settings.DeviceId, (uint)_settings.LongPressButtonId,
                 SimpleVJoyInterface.ButtonAction.Up);
     }
 
 
     public override void OnTick()
     {
+    }
+
+    // The state is not the key's to remember: several keys can address the same
+    // button, and a device is reset behind their backs whenever it is acquired or
+    // released. Take it from what the device reports instead.
+    private void RefreshButtonState()
+    {
+        _buttonState = SimpleVJoyInterface.Instance.GetButtonState(_settings.DeviceId, _settings.ButtonId);
+        Connection.SetStateAsync(_buttonState ? 1u : 0u);
     }
 
     private void SetButtonImage()
@@ -102,6 +115,7 @@ public class ToggleButtonAction : KeypadBase
     public override void ReceivedSettings(ReceivedSettingsPayload payload)
     {
         var oldId = _settings.ButtonId;
+        var oldDeviceId = _settings.DeviceId;
         try
         {
             Tools.AutoPopulateSettings(_settings, payload.Settings);
@@ -112,7 +126,13 @@ public class ToggleButtonAction : KeypadBase
             Connection.ShowAlert();
         }
 
+        // A latched button is left latched once the key stops pointing at it, with
+        // nothing on the deck able to switch it off again.
+        if (oldId != _settings.ButtonId || oldDeviceId != _settings.DeviceId)
+            SimpleVJoyInterface.Instance.ButtonState(oldDeviceId, oldId, SimpleVJoyInterface.ButtonAction.Up);
+
         if (oldId != _settings.ButtonId) SetButtonImage();
+        RefreshButtonState();
     }
 
     public override void ReceivedGlobalSettings(ReceivedGlobalSettingsPayload payload)
@@ -136,12 +156,17 @@ public class ToggleButtonAction : KeypadBase
         [JsonProperty(PropertyName = "lpButtonId")]
         public uint? LongPressButtonId { get; set; }
 
+        /// <summary>The vJoy device this key drives; 0 means the configured default.</summary>
+        [JsonProperty(PropertyName = "device")]
+        public uint DeviceId { get; set; }
+
         public static PluginSettings CreateDefaultSettings()
         {
             var instance = new PluginSettings
             {
                 ButtonId = 1,
-                LongPressButtonId = 0
+                LongPressButtonId = 0,
+                DeviceId = 0
             };
             return instance;
         }
@@ -165,12 +190,14 @@ public class ToggleButtonAction : KeypadBase
 
     private async void SimpleVJoyInterface_OnVJoyStatusUpdate()
     {
+        RefreshButtonState();
         if (_propertyInspectorIsOpen) await SendPropertyInspectorData();
     }
 
     private async Task SendPropertyInspectorData()
     {
-        await Connection.SendToPropertyInspectorAsync(Configuration.Instance.GetPropertyInspectorData());
+        await Connection.SendToPropertyInspectorAsync(
+            Configuration.Instance.GetPropertyInspectorData(_settings.DeviceId));
     }
 
     #endregion

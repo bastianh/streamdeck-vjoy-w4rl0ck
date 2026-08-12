@@ -108,6 +108,9 @@
         <None Update="PropertyInspector\Global.html">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="PropertyInspector\js\devices.js">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="PropertyInspector\js\helper.js">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
